@@ -1,0 +1,27 @@
+# Bloqueia acesso direto a pastas sensíveis
+RedirectMatch 403 ^/config/.*$
+RedirectMatch 403 ^/sql/.*$
+RedirectMatch 403 ^/logs/.*$
+RedirectMatch 403 ^/includes/.*$
+
+# Arquivos sensíveis / backups
+<FilesMatch "\.(sql|bak|old|log|ini|env|sh|md)$">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "^(composer\.json|package\.json|\.env.*|\.git.*)$">
+    Require all denied
+</FilesMatch>
+
+# Impede listagem de diretórios
+Options -Indexes
+
+# UTF-8
+AddDefaultCharset UTF-8
+
+# Segurança de cabeçalhos básicos
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "same-origin"
+</IfModule>

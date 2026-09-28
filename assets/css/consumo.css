@@ -1,0 +1,581 @@
+/* =========================================================
+   Módulo de Consumo — extensões visuais
+   Depende dos tokens definidos em assets/css/app.css
+   ========================================================= */
+
+/* ===================== MAPA DE MESAS ===================== */
+.mesa-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: .8rem;
+}
+
+.mesa-card {
+    position: relative;
+    border: 1px solid var(--border);
+    border-left: 5px solid var(--muted);
+    border-radius: var(--card-radius);
+    background: var(--card-bg);
+    box-shadow: var(--shadow);
+    padding: .8rem .85rem;
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+    transition: transform .15s ease, box-shadow .15s ease;
+    text-decoration: none;
+    color: inherit;
+    height: 100%;
+}
+
+.mesa-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    color: inherit;
+}
+
+.mesa-card.LIVRE {
+    border-left-color: #00b894;
+}
+
+.mesa-card.OCUPADA {
+    border-left-color: #f7a541;
+}
+
+.mesa-card.RESERVADA {
+    border-left-color: #0ea5e9;
+}
+
+.mesa-card.INATIVA {
+    opacity: .5;
+    border-left-color: #94a3b8;
+}
+
+.mesa-numero {
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.mesa-nome {
+    font-size: .76rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .3px;
+}
+
+.mesa-meta {
+    font-size: .78rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+    flex-wrap: wrap;
+}
+
+.mesa-rodape {
+    margin-top: auto;
+    padding-top: .45rem;
+    border-top: 1px dashed var(--border);
+    font-size: .78rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .3rem;
+}
+
+.mesa-rodape .valor {
+    font-weight: 700;
+    color: var(--text);
+}
+
+.mesa-card.OCUPADA::after {
+    content: "";
+    position: absolute;
+    top: .7rem;
+    right: .7rem;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #f7a541;
+    animation: mesa-pulso 1.8s ease-in-out infinite;
+}
+
+@keyframes mesa-pulso {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: .35; transform: scale(.7); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mesa-card.OCUPADA::after { animation: none; }
+}
+
+/* ===================== COZINHA (KDS) ===================== */
+.kds-barras {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: .6rem;
+    margin-bottom: 1rem;
+}
+
+.kds-contador {
+    border-radius: var(--card-radius);
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    box-shadow: var(--shadow);
+    padding: .6rem .8rem;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+}
+
+.kds-contador .n {
+    font-size: 1.4rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.kds-contador .r {
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    color: var(--muted);
+}
+
+.kds-colunas {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .9rem;
+    align-items: start;
+}
+
+.kds-coluna {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    padding: .6rem;
+    min-height: 120px;
+}
+
+.kds-coluna > h3 {
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    color: var(--muted);
+    margin: 0 0 .6rem;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    font-weight: 700;
+}
+
+.kds-coluna > h3 .badge {
+    font-size: .66rem;
+}
+
+.kds-pedido {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid #94a3b8;
+    border-radius: 11px;
+    padding: .6rem .7rem;
+    margin-bottom: .55rem;
+    box-shadow: var(--shadow);
+    animation: kds-entrada .25s ease;
+}
+
+@keyframes kds-entrada {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: none; }
+}
+
+.kds-pedido.PENDENTE {
+    border-left-color: #f7a541;
+}
+
+.kds-pedido.PREPARANDO {
+    border-left-color: #0ea5e9;
+}
+
+.kds-pedido.PRONTO {
+    border-left-color: #00b894;
+    background: linear-gradient(180deg, rgba(0, 184, 148, .09), transparent 60%), var(--card-bg);
+}
+
+.kds-pedido.ATRASADO {
+    box-shadow: 0 0 0 1px rgba(255, 77, 109, .45), var(--shadow);
+}
+
+.kds-pedido .cab {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .4rem;
+    margin-bottom: .35rem;
+}
+
+.kds-pedido .mesa {
+    font-weight: 700;
+    font-size: .95rem;
+}
+
+.kds-pedido .tempo {
+    font-size: .7rem;
+    font-weight: 700;
+    padding: .12rem .4rem;
+    border-radius: 6px;
+    background: #eef1f9;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.kds-pedido .tempo.atrasado {
+    background: #fdecef;
+    color: #ff4d6d;
+}
+
+.kds-pedido .tempo.critico {
+    background: #ff4d6d;
+    color: #fff;
+    animation: kds-blink 1.1s ease-in-out infinite;
+}
+
+@keyframes kds-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .5; }
+}
+
+.kds-pedido .item {
+    font-size: .88rem;
+    display: flex;
+    gap: .4rem;
+    align-items: flex-start;
+}
+
+.kds-pedido .item .qtd {
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 2.1em;
+    font-variant-numeric: tabular-nums;
+}
+
+.kds-pedido .obs {
+    font-size: .76rem;
+    color: #b45309;
+    background: #fff7e6;
+    border-radius: 6px;
+    padding: .18rem .4rem;
+    margin-top: .3rem;
+    display: inline-flex;
+    gap: .25rem;
+    align-items: flex-start;
+}
+
+.kds-pedido .garcom {
+    font-size: .72rem;
+    color: var(--muted);
+    margin-top: .35rem;
+    padding-top: .3rem;
+    border-top: 1px dashed var(--border);
+    display: flex;
+    justify-content: space-between;
+    gap: .3rem;
+}
+
+/* Modo tela cheia: esconde a navegação para tablet na cozinha */
+body.kds-tela-cheia .sidebar,
+body.kds-tela-cheia .topbar,
+body.kds-tela-cheia .page-header .subtitulo {
+    display: none !important;
+}
+
+body.kds-tela-cheia .app-wrapper {
+    margin-left: 0 !important;
+}
+
+body.kds-tela-cheia .app-main {
+    padding: 1rem;
+}
+
+body.kds-tela-cheia .kds-colunas {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.1rem;
+}
+
+body.kds-tela-cheia .kds-pedido {
+    font-size: 1.05rem;
+    padding: .8rem .9rem;
+}
+
+/* ===================== COMANDA ===================== */
+.comanda-itens {
+    display: flex;
+    flex-direction: column;
+}
+
+.comanda-item {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .55rem .2rem;
+    border-bottom: 1px dashed var(--border);
+}
+
+.comanda-item:last-child {
+    border-bottom: 0;
+}
+
+.comanda-item .qtd {
+    min-width: 2.4em;
+    font-weight: 700;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+}
+
+.comanda-item .desc {
+    flex: 1;
+    min-width: 0;
+}
+
+.comanda-item .desc .obs {
+    font-size: .75rem;
+    color: #b45309;
+    display: block;
+}
+
+.comanda-item.CANCELADO .desc {
+    text-decoration: line-through;
+    opacity: .55;
+}
+
+.comanda-total {
+    position: sticky;
+    bottom: 0;
+    background: var(--card-bg);
+    border-top: 2px solid var(--border);
+}
+
+.linha-total {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .25rem 0;
+    font-size: .88rem;
+}
+
+.linha-total .rot {
+    color: var(--muted);
+}
+
+.linha-total.principal {
+    font-size: 1.25rem;
+    font-weight: 700;
+    padding-top: .5rem;
+}
+
+.linha-total.principal .val {
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+}
+
+.comanda-cabecalho {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem 1.2rem;
+    align-items: center;
+}
+
+.info-lote {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-lote .rot {
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--muted);
+}
+
+.info-lote .val {
+    font-weight: 600;
+}
+
+/* ===================== SELETOR DE CARDÁPIO ===================== */
+.cardapio-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: .5rem;
+    max-height: 46vh;
+    overflow-y: auto;
+    padding-right: .2rem;
+}
+
+.cardapio-btn {
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    border-radius: 11px;
+    padding: .5rem .6rem;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s, transform .1s;
+    display: flex;
+    flex-direction: column;
+    gap: .15rem;
+}
+
+.cardapio-btn:hover {
+    border-color: var(--accent);
+    box-shadow: 0 3px 10px rgba(79, 110, 247, .18);
+    transform: translateY(-1px);
+}
+
+.cardapio-btn .n {
+    font-size: .84rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.cardapio-btn .p {
+    font-size: .8rem;
+    color: var(--accent);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.cardapio-btn .c {
+    font-size: .66rem;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    color: #fff;
+    padding: .1rem .35rem;
+    border-radius: 5px;
+    align-self: flex-start;
+}
+
+.categoria-bloco {
+    margin-bottom: .9rem;
+}
+
+.categoria-bloco > h4 {
+    font-size: .74rem;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    color: var(--muted);
+    margin: 0 0 .4rem;
+    font-weight: 700;
+}
+
+/* ===================== PAGAMENTO ===================== */
+.pg-linha {
+    display: grid;
+    grid-template-columns: 2fr 1.4fr 1fr auto;
+    gap: .5rem;
+    align-items: end;
+    margin-bottom: .55rem;
+    padding: .55rem;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--card-bg);
+}
+
+.pg-total {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    padding: .8rem 1rem;
+}
+
+.pg-total .linha {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: .2rem 0;
+}
+
+.pg-total .linha .rot {
+    font-size: .85rem;
+    color: var(--muted);
+}
+
+.pg-total .linha .val {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.pg-total .linha.destaque {
+    border-top: 1px dashed var(--border);
+    margin-top: .35rem;
+    padding-top: .45rem;
+    font-size: 1.2rem;
+}
+
+.pg-total .troco {
+    color: #00b894;
+}
+
+.pg-total .falta {
+    color: #ff4d6d;
+}
+
+/* ===================== CATEGORIAS DO CARDÁPIO ===================== */
+.categoria-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    font-size: .7rem;
+    font-weight: 600;
+    padding: .18rem .5rem;
+    border-radius: 20px;
+    color: #fff;
+}
+
+/* ===================== DARK MODE ===================== */
+body.dark-mode .kds-pedido .obs {
+    background: #33280d;
+    color: #f3c969;
+}
+
+body.dark-mode .kds-pedido .tempo {
+    background: #1b2338;
+}
+
+body.dark-mode .kds-pedido .tempo.atrasado {
+    background: #3a1d24;
+    color: #ff8496;
+}
+
+body.dark-mode .cardapio-btn:hover {
+    box-shadow: 0 3px 12px rgba(0, 0, 0, .5);
+}
+
+/* ===================== RESPONSIVO ===================== */
+@media (max-width: 991.98px) {
+    .kds-colunas {
+        grid-template-columns: 1fr;
+    }
+    .pg-linha {
+        grid-template-columns: 1fr 1fr;
+    }
+    .pg-linha .btn-remover {
+        grid-column: 1 / -1;
+    }
+    .mesa-grid {
+        grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+    }
+}
+
+@media (max-width: 575.98px) {
+    .cardapio-picker {
+        grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+    }
+    .mesa-numero {
+        font-size: 1.1rem;
+    }
+    .pg-linha {
+        grid-template-columns: 1fr;
+    }
+    .comanda-total .linha-total.principal {
+        font-size: 1.1rem;
+    }
+}
