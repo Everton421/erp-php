@@ -13,10 +13,11 @@ ERP/gestor comercial em PHP 8 + MySQL/MariaDB, 100% responsivo, procedural por m
 - `config/config.php` (sessão, erros, BASE_URL, núcleo), `config/database.php` (`db()` singleton, `erro_banco()`), `config/permissoes.php`, `config/auth.php`.
 - `includes/`: `functions.php` (helpers), `header.php`, `sidebar.php`, `footer.php`.
 - `api/`: `produtos.php`, `clientes.php`, `busca.php` (GET com `?q=`), `cep.php` (POST, ViaCEP), `notificacoes.php`.
-- `consumo/`: módulo de consumo por comandas (painel, cardápio, mesas, comandas, produção, caixa, relatórios). `consumo/dados.php` é a API JSON (`?acao=cardapio|kds|mesas`). O nome exibido é configurável em Configurações (`consumo_nome`, padrão "Consumo"), lido por `rotulo_consumo()`.
+- `consumo/`: módulo de consumo por comandas (painel, cardápio, mesas, comandas, produção, caixa, relatórios). `consumo/dados.php` é a API JSON (`?acao=cardapio|kds|mesas`). Os nomes exibidos são configuráveis em Configurações (`consumo_nome`, padrão "Consumo", lido por `rotulo_consumo()`; `consumo_producao_nome`, padrão "Produção", lido por `rotulo_producao()`).
+- `consumo/cozinha/`: pasta da fila de preparo. O nome é **interno e herdado** — junto com as chaves `cozinha_ver`/`cozinha_alterar_status`, `?acao=kds`, `CONSUMO.kds` e as classes `.kds-*`. Nunca hardcodar "cozinha"/"KDS" em rótulos: use `rotulo_producao()`. Vale o mesmo para "salão" e "prato" (usar "atendimento" e "item"). Para o JS, os rótulos chegam em `window.ROTULOS` (`includes/footer.php`).
 - `restaurante/index.php`: shim de compatibilidade que redireciona `/restaurante/...` → `/consumo/...` (preserva query string). Pode ser removido quando nenhum link salvo apontar para a pasta antiga.
 - `sql/banco.sql`: schema completo + seeds (admin/admin123, perfis 1–6, ~56 permissões).
-- `sql/consumo.sql`: 6 tabelas do módulo + 19 permissões + perfis `Atendente`/`Produção`/`Caixa` + `configs.consumo_nome` (idempotente).
+- `sql/consumo.sql`: 6 tabelas do módulo + 19 permissões + perfis `Atendente`/`Produção`/`Caixa` + `configs.consumo_nome` e `configs.consumo_producao_nome` (idempotente).
 - `sql/consumo_seed.sql`: categorias/itens/mesas/usuários de exemplo (idempotente, opcional).
 - `sql/consumo_migracao.sql`: para bancos já importados na versão "restaurante" — renomeia módulo, 4 chaves de permissão, logs, perfis e usuários do seed (idempotente).
 - Banco `vendasapp`, utf8mb4. Filtros de data: `yyyy-mm-dd`.
@@ -41,7 +42,7 @@ ERP/gestor comercial em PHP 8 + MySQL/MariaDB, 100% responsivo, procedural por m
 - Regras obrigatórias: sem dupla ocupação de mesa; comanda só abre em mesa livre; não fecha com itens `PENDENTE`/`PREPARANDO`; transição de item validada por `item_transicao_valida()`; cancelar comanda apaga pagamentos e o recebível pendente.
 - Financeiro: documento ASCII `COMANDA-{numero}` e referência de fluxo `COMANDA#{id}`; reusa `formas_pagamento`, `fluxo_caixa` e `contas_receber`. **Troco não é receita** — `caixa/acao.php` trava a comanda com `FOR UPDATE` e aplica cada forma só até o saldo; o excedente vira `comandas.troco`.
 - Assets `assets/css/consumo.css` e `assets/js/consumo.js` são carregados **apenas** em páginas `consumo/` (condicional no header/footer, via `$paginaConsumo`). O namespace JS é `CONSUMO`. Atalhos: `F3` abre comanda (exige `comandas_criar`, checado via `window.PERMISSOES`).
-- Nome exibido: sempre usar `rotulo_consumo()` (nunca "Restaurante" hardcoded) em menu, títulos, rótulos de permissão e cupom. Default "Consumo", editável em Configurações.
+- Nome exibido: sempre usar `rotulo_consumo()` para o módulo e `rotulo_producao()` para a fila de preparo (nunca "Restaurante", "Cozinha", "KDS" ou "Salão" hardcoded) em menu, títulos, rótulos de permissão, mensagens e cupom. Defaults "Consumo"/"Produção", editáveis em Configurações.
 - Coluna `comandas.garcom_id` e aliases `garcom_nome`/`garcom_usuario` foram mantidos por estabilidade de schema; a persona é exibida como "Atendente".
 - Permissões: `consumo_ver`, `cardapio_ver`, `cardapio_editar`, `mesas_ver`, `mesas_editar`, `mesas_excluir`, `comandas_ver`, `comandas_ver_todas`, `comandas_criar`, `comandas_item`, `comandas_fechar`, `comandas_cancelar`, `comandas_desconto`, `comandas_imprimir`, `cozinha_ver`, `cozinha_alterar_status`, `caixa_consumo_ver`, `caixa_consumo_pagar`, `consumo_relatorios`.
 

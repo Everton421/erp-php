@@ -63,9 +63,7 @@ try {
     }
 
     efetuar_login($id);
-    $destino = url('dashboard/index.php');
-    header('Location: ' . $destino);
-    exit;
+    ir_para_inicial();
 
 } catch (Throwable $e) {
     erro_banco($e, 'autenticar');

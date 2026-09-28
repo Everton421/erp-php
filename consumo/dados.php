@@ -20,11 +20,11 @@ if ($acao === 'cardapio') {
 }
 
 /* =========================================================
- * COZINHA — um cartão por item, do mais antigo para o mais novo
+ * PRODUÇÃO — um cartão por item, do mais antigo para o mais novo
  * ========================================================= */
 if ($acao === 'kds') {
     if (!tem_permissao('cozinha_ver')) {
-        json_resposta(false, 'Sem permissão para acessar a cozinha.', null, 403);
+        json_resposta(false, 'Sem permissão para acessar ' . rotulo_producao() . '.', null, 403);
     }
 
     $stmt = $pdo->query(

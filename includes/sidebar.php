@@ -67,7 +67,7 @@ function link_menu_rota(string $caminho, array $modulosAtivos, string $moduloAtu
     <?php link_menu_rota('consumo/comandas/index.php', ['consumo/comandas'], $moduloAtual, 'receipt-cutoff', 'Comandas'); ?>
     <?php endif; ?>
     <?php if (tem_permissao('cozinha_ver')): ?>
-    <?php link_menu_rota('consumo/cozinha/index.php', ['consumo/cozinha'], $moduloAtual, 'fire', 'Produção (KDS)'); ?>
+    <?php link_menu_rota('consumo/cozinha/index.php', ['consumo/cozinha'], $moduloAtual, 'fire', rotulo_producao()); ?>
     <?php endif; ?>
     <?php if (tem_permissao('caixa_consumo_ver')): ?>
     <?php link_menu_rota('consumo/caixa/index.php', ['consumo/caixa'], $moduloAtual, 'cash-coin', 'Caixa do ' . rotulo_consumo()); ?>

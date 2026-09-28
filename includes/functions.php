@@ -66,11 +66,51 @@ function voltar(): void
 {
     $ref = trim((string)($_SERVER['HTTP_REFERER'] ?? ''));
     if ($ref === '') {
-        redirecionar('dashboard/index.php');
+        ir_para_inicial();
     }
     $caminho = preg_replace('#^https?://[^/]+#i', '', $ref);
     $caminho = preg_replace('#^' . preg_quote(BASE_URL, '#') . '#i', '', $caminho);
     redirecionar(ltrim($caminho, '/'));
+}
+
+/**
+ * Primeira tela que o usuário logado tem permissão de acessar.
+ * A ordem vai do mais específico ao mais geral: perfis operacionais como
+ * Produção caem na fila da cozinha em vez do painel genérico, que ambos
+ * por possuírem 'consumo_ver'.
+ * Retorna string vazia quando o usuário não tem nenhuma permissão.
+ */
+function pagina_inicial(): string
+{
+    $rotas = [
+        'dashboard_ver'     => 'dashboard/index.php',
+        'cozinha_ver'       => 'consumo/cozinha/index.php',
+        'caixa_consumo_ver' => 'consumo/caixa/index.php',
+        'comandas_ver'      => 'consumo/comandas/index.php',
+        'consumo_ver'       => 'consumo/index.php',
+    ];
+
+    foreach ($rotas as $chave => $caminho) {
+        if (tem_permissao($chave)) {
+            return $caminho;
+        }
+    }
+
+    return '';
+}
+
+/**
+ * Leva o usuário à primeira tela permitida. Sem nenhuma permissão não há
+ * página possível: encerra a sessão em vez de deixá-lo num redirect inválido.
+ */
+function ir_para_inicial(): void
+{
+    $caminho = pagina_inicial();
+    if ($caminho === '') {
+        flash('danger', 'Seu usuário não possui nenhuma permissão de acesso.');
+        redirecionar('login/logout.php');
+    }
+    redirecionar($caminho);
 }
 
 /* =========================================================

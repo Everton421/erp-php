@@ -50,7 +50,7 @@ try {
         json_resposta(false, 'Outro usuário alterou este item. A tela será atualizada.', null, 409);
     }
 
-    // Ao entregar, se não restar nada pendente a comanda avisa o salão.
+    // Ao entregar, se não restar nada pendente a comanda avisa o atendimento.
     $pdo->commit();
 } catch (Throwable $e) {
     if ($pdo->inTransaction()) {

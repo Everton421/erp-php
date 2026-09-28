@@ -162,10 +162,15 @@ function exigir_permissao(string $chave): void
     http_response_code(403);
     flash('danger', 'Você não tem permissão para acessar esta página.');
 
-    // Nunca redirecionar para a própria página: a própria página é quem
-    // chamou exigir_permissao() e o Location geraria um loop de refresh.
-    $destino = 'dashboard/index.php';
-    $atual   = (string)parse_url((string)($_SERVER['SCRIPT_NAME'] ?? ''), PHP_URL_PATH);
+    // Quem não tem 'dashboard_ver' é levado à própria tela inicial em vez do
+    // dashboard, e nunca à página que chamou exigir_permissao(): um Location
+    // apontando para si mesmo gera um loop de refresh.
+    $destino = tem_permissao('dashboard_ver') ? 'dashboard/index.php' : pagina_inicial();
+    if ($destino === '') {
+        redirecionar('login/logout.php');
+    }
+
+    $atual = (string)parse_url((string)($_SERVER['SCRIPT_NAME'] ?? ''), PHP_URL_PATH);
     if ($atual === url($destino)) {
         exit;
     }

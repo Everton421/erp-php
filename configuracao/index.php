@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $campos = [
         'empresa_nome', 'empresa_cnpj', 'empresa_endereco', 'empresa_telefone', 'empresa_email',
-        'consumo_nome',
+        'consumo_nome', 'consumo_producao_nome',
         'moeda_simbolo', 'casas_decimais', 'estoque_negativo', 'venda_exige_cliente',
         'atualizar_custo_compra', 'juros_padrao', 'multa_padrao', 'dias_vencimento', 'nota_rodape_venda',
         'venda_tipo_pedido_padrao', 'compra_tipo_pedido_padrao',
@@ -80,7 +80,13 @@ $formas = db()->query('SELECT id, nome FROM formas_pagamento WHERE ativo = 1 ORD
                             <label class="form-label">Nome do módulo de consumo</label>
                             <input type="text" class="form-control" name="consumo_nome" maxlength="40"
                                    placeholder="Consumo" value="<?= e(obter_config('consumo_nome', 'Consumo')) ?>">
-                            <small class="form-text text-muted">Aparece no menu, nos títulos e nos relatórios. Use o nome do seu estabelecimento: Consumo, Salão, Pedidos, Bar…</small>
+                            <small class="form-text text-muted">Aparece no menu, nos títulos e nos relatórios. Use o nome do seu estabelecimento: Consumo, Pedidos, Atendimento, Bar…</small>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Nome da fila de produção</label>
+                            <input type="text" class="form-control" name="consumo_producao_nome" maxlength="40"
+                                   placeholder="Produção" value="<?= e(obter_config('consumo_producao_nome', 'Produção')) ?>">
+                            <small class="form-text text-muted">Cabeçalho da fila de preparo, no menu e nos títulos: Produção, Atendimento, Enfermagem, Oficina…</small>
                         </div>
                     </div>
                 </div>

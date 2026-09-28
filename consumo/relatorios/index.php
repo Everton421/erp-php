@@ -51,8 +51,8 @@ $total = (float)$resumo['total'];
 $ticket = $qtd > 0 ? $total / $qtd : 0.0;
 
 $stmt = $pdo->prepare(
-    "SELECT COUNT(*) FROM comandas
-      WHERE status = 'CANCELADA' AND $condComanda $condTurno"
+    "SELECT COUNT(*) FROM comandas c
+      WHERE c.status = 'CANCELADA' AND $condComanda $condTurno"
 );
 $stmt->execute(array_merge($paramsData, $paramsTurno));
 $canceladas = (int)$stmt->fetchColumn();
@@ -129,8 +129,8 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($paramsData);
 $porGarcom = $stmt->fetchAll();
 
-/* ================= Desempenho da cozinha ================= */
-$stmt = $pdo->query(
+/* ================= Desempenho da fila de preparo ================= */
+$stmt = $pdo->prepare(
     "SELECT i.status, COUNT(*) AS qtd,
             COALESCE(AVG(TIMESTAMPDIFF(MINUTE, i.data_pedido, i.data_atualizacao)), 0) AS media_min
        FROM comanda_itens i
@@ -382,7 +382,7 @@ include INC . 'header.php';
 
     <div class="col-12 col-xl-6">
         <div class="card h-100">
-            <div class="card-header-custom"><i class="bi bi-stopwatch me-2"></i>Desempenho da cozinha</div>
+            <div class="card-header-custom"><i class="bi bi-stopwatch me-2"></i>Desempenho da <?= e(rotulo_producao()) ?></div>
             <div class="card-body">
                 <div class="row g-3 mb-3">
                     <div class="col-4 text-center">
@@ -438,7 +438,7 @@ include INC . 'header.php';
 
 <script>
     $(function () {
-        REST.grafico('chartDia', {
+        CONSUMO.grafico('chartDia', {
             labels: <?= json_encode($labelsDia, JSON_UNESCAPED_UNICODE) ?>,
             datasets: [{
                 label: 'Faturamento',
@@ -468,7 +468,7 @@ include INC . 'header.php';
         const categorias = <?= json_encode(array_column($porCategoria, 'categoria'), JSON_UNESCAPED_UNICODE) ?>;
         const totais = <?= json_encode(array_map('floatval', array_column($porCategoria, 'total'))) ?>;
         if (categorias.length) {
-            REST.grafico('chartCategoria', {
+            CONSUMO.grafico('chartCategoria', {
                 labels: categorias,
                 datasets: [{
                     data: totais,

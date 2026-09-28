@@ -128,7 +128,7 @@ if (tem_permissao('cozinha_ver')) {
             'tipo' => 'cozinha',
             'icone' => 'bi-fire',
             'classe' => 'text-warning',
-            'titulo' => $fila . ' pedido(s) na fila da produção',
+            'titulo' => $fila . ' pedido(s) na fila de ' . lcfirst(rotulo_producao()),
             'descricao' => 'Itens aguardando preparo ou finalização.',
             'url' => url('consumo/cozinha/index.php'),
         ];

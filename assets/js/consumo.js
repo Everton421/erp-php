@@ -135,7 +135,7 @@ CONSUMO.kds = {
     ligarSom: function () {
         const ctx = this.audioContexto();
         if (ctx && ctx.state === 'suspended') ctx.resume();
-        APP.toast('success', 'Som da cozinha ativado.');
+        APP.toast('success', 'Som de ' + ROTULOS.producao + ' ativado.');
     },
 
     aoCarregar: function (pedidos, prontosAntes) {
@@ -174,7 +174,7 @@ CONSUMO.kds = {
                     + '<i class="bi bi-check2-circle me-1"></i>Marcar pronto</button>'
                 : '<button type="button" class="btn btn-sm btn-outline-secondary w-100 mt-2 js-kds-status"'
                     + ' data-item="' + p.item_id + '" data-status="ENTREGUE">'
-                    + '<i class="bi bi-bag-check me-1"></i>Entregar ao salão</button>');
+                    + '<i class="bi bi-bag-check me-1"></i>Concluir entrega</button>');
 
         return '<div class="kds-pedido ' + p.status + (atraso ? ' ATRASADO' : '') + '">'
             + '<div class="cab">'

@@ -50,6 +50,10 @@ while (($f = proximo_flash()) !== null) {
         window.CSRF_TOKEN = <?= json_encode(csrf_token()) ?>;
         window.BASE_URL   = <?= json_encode(BASE_URL) ?>;
         window.PERMISSOES = <?= json_encode(array_values(permissao_carregadas())) ?>;
+        window.ROTULOS    = <?= json_encode([
+            'consumo'  => rotulo_consumo(),
+            'producao' => rotulo_producao(),
+        ], JSON_UNESCAPED_UNICODE) ?>;
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>

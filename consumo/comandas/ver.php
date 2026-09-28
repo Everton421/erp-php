@@ -85,7 +85,7 @@ include INC . 'header.php';
 <?php if ($podeManipular && $prontos): ?>
 <div class="alert alert-success d-flex flex-wrap align-items-center gap-2">
     <i class="bi bi-bag-check me-1"></i>
-    <b><?= count($prontos) ?> item(ns) prontos para entrega ao salão.</b>
+    <b><?= count($prontos) ?> item(ns) prontos para entrega.</b>
 </div>
 <?php endif; ?>
 
@@ -329,7 +329,7 @@ include INC . 'header.php';
                 'question', 'Fechar comanda').then(function (r) {
                 if (!r.isConfirmed) return;
                 $btn.prop('disabled', true);
-                REST.acao('comandas/acao.php', { csrf_token: APP.csrf, acao: 'fechar', comanda_id: comandaId },
+                CONSUMO.acao('comandas/acao.php', { csrf_token: APP.csrf, acao: 'fechar', comanda_id: comandaId },
                     function (res) {
                         Swal.fire({
                             icon: 'success', title: res.msg,
@@ -368,7 +368,7 @@ include INC . 'header.php';
                 }
             }).then(function (r) {
                 if (!r.isConfirmed) return;
-                REST.acao('comandas/acao.php', {
+                CONSUMO.acao('comandas/acao.php', {
                     csrf_token: APP.csrf, acao: 'desconto', comanda_id: comandaId,
                     desconto: r.value.desconto, acrescimo: r.value.acrescimo
                 }, function () { recarregar(); },
@@ -393,7 +393,7 @@ include INC . 'header.php';
                     cancelButtonText: 'Voltar'
                 }).then(function (m) {
                     if (!m.isConfirmed) return;
-                    REST.acao('comandas/acao.php', {
+                    CONSUMO.acao('comandas/acao.php', {
                         csrf_token: APP.csrf, acao: 'cancelar_comanda',
                         comanda_id: comandaId, motivo: m.value
                     }, function () { recarregar(); },
@@ -418,7 +418,7 @@ include INC . 'header.php';
             if (valor === Number($qtd.data('atual'))) return;
 
             $qtd.data('atual', valor);
-            REST.acao('comandas/acao.php', {
+            CONSUMO.acao('comandas/acao.php', {
                 csrf_token: APP.csrf, acao: 'qtd', item_id: itemIdDaLinha($qtd), qtd: valor
             }, function () { recarregar(); },
                 function (res) {
@@ -460,7 +460,7 @@ include INC . 'header.php';
                 cancelButtonText: 'Cancelar'
             }).then(function (r) {
                 if (!r.isConfirmed) return;
-                REST.acao('comandas/acao.php', {
+                CONSUMO.acao('comandas/acao.php', {
                     csrf_token: APP.csrf, acao: 'observacao',
                     item_id: $btn.data('item'), observacao: r.value
                 }, function () { recarregar(); },
@@ -474,7 +474,7 @@ include INC . 'header.php';
                 'O item será retirado da comanda e o total será recalculado.',
                 'warning', 'Remover').then(function (r) {
                 if (!r.isConfirmed) return;
-                REST.acao('comandas/acao.php', {
+                CONSUMO.acao('comandas/acao.php', {
                     csrf_token: APP.csrf, acao: 'remover', item_id: $btn.data('item')
                 }, function () { recarregar(); },
                     function (res) { APP.toast('error', (res && res.msg) || 'Não foi possível remover.'); });
@@ -484,10 +484,10 @@ include INC . 'header.php';
         $('.js-cancelar-item').on('click', function () {
             const $btn = $(this);
             APP.swalConfirm('Cancelar item?',
-                'O item será cancelado e informado à cozinha. O total será recalculado.',
+                'O item será cancelado e informado à <?= e(rotulo_producao()) ?>. O total será recalculado.',
                 'warning', 'Cancelar item').then(function (r) {
                 if (!r.isConfirmed) return;
-                REST.acao('comandas/acao.php', {
+                CONSUMO.acao('comandas/acao.php', {
                     csrf_token: APP.csrf, acao: 'cancelar_item', item_id: $btn.data('item')
                 }, function () { recarregar(); },
                     function (res) { APP.toast('error', (res && res.msg) || 'Não foi possível cancelar.'); });

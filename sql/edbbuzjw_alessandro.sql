@@ -1741,19 +1741,20 @@ ON DUPLICATE KEY UPDATE
 -- ---------------------------------------------------------------------
 
 INSERT INTO `perfis` (`nome`, `descricao`) VALUES
-('Atendente', 'Operação do salão: comandas, itens e fechamento de mesa'),
+('Atendente', 'Operação de atendimento: comandas, itens e fechamento de mesa'),
 ('Produção',  'Produção: fila de pedidos e status de preparo'),
 ('Caixa',     'Recebimento de comandas e relatórios do módulo de consumo')
 ON DUPLICATE KEY UPDATE
   `descricao` = VALUES(`descricao`);
 
--- Atendente: painel, cardápio, mesas, comandas (sem ver as alheias, sem cancelar)
+-- Atendente: dashboard, painel, cardápio, mesas, comandas (sem ver as alheias, sem cancelar)
 INSERT INTO `perfil_permissoes` (`perfil_id`, `permissao_id`, `permitido`)
 SELECT pf.id, pm.id, 1
   FROM `perfis` pf
   CROSS JOIN `permissoes` pm
  WHERE pf.nome = 'Atendente'
    AND pm.chave IN (
+       'dashboard_ver',
        'consumo_ver', 'cardapio_ver', 'mesas_ver', 'comandas_ver',
        'comandas_criar', 'comandas_item', 'comandas_fechar', 'comandas_imprimir'
    )
@@ -1771,13 +1772,14 @@ SELECT pf.id, pm.id, 1
    )
 ON DUPLICATE KEY UPDATE `permitido` = 1;
 
--- Caixa: painel, cardápio, mesas, todas as comandas, recebimento e relatórios
+-- Caixa: dashboard, painel, cardápio, mesas, todas as comandas, recebimento e relatórios
 INSERT INTO `perfil_permissoes` (`perfil_id`, `permissao_id`, `permitido`)
 SELECT pf.id, pm.id, 1
   FROM `perfis` pf
   CROSS JOIN `permissoes` pm
  WHERE pf.nome = 'Caixa'
    AND pm.chave IN (
+       'dashboard_ver',
        'consumo_ver', 'cardapio_ver', 'mesas_ver', 'comandas_ver',
        'comandas_ver_todas', 'comandas_imprimir', 'caixa_consumo_ver',
        'caixa_consumo_pagar', 'consumo_relatorios'
@@ -1785,14 +1787,15 @@ SELECT pf.id, pm.id, 1
 ON DUPLICATE KEY UPDATE `permitido` = 1;
 
 -- ---------------------------------------------------------------------
--- 8. NOME EXIBIDO DO MÓDULO
---    Editável em Configurações; o código usa "Consumo" quando vazio.
+-- 8. NOMES EXIBIDOS DO MÓDULO
+--    Editáveis em Configurações; o código usa "Consumo"/"Produção" quando vazio.
 --    O ON DUPLICATE propositalmente não sobrescreve: quem já personalizou
 --    o nome (ex.: "Bar", "Salão", "Lanchonete") mantém a escolha.
 -- ---------------------------------------------------------------------
 
 INSERT INTO `configs` (`chave`, `valor`, `atualizada_em`) VALUES
-('consumo_nome', 'Consumo', NOW())
+('consumo_nome', 'Consumo', NOW()),
+('consumo_producao_nome', 'Produção', NOW())
 ON DUPLICATE KEY UPDATE `chave` = `chave`;
 
 COMMIT;

@@ -223,7 +223,7 @@ include INC . 'header.php';
     APP.confirmarExcluir('.excluir-mesa', 'Deseja excluir esta mesa? O histórico de comandas será preservado.');
     $('[data-atualizar]').on('click', function (e) {
         e.preventDefault();
-        REST.mesas.atualizar();
+            CONSUMO.mesas.atualizar();
     });
 </script>
 <?php include INC . 'footer.php'; ?>

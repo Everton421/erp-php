@@ -71,12 +71,13 @@ UPDATE `perfis` SET `descricao` = CONVERT('Recebimento de comandas e relatórios
  WHERE `nome` = 'Caixa';
 
 -- ---------------------------------------------------------------------
--- 4. NOME EXIBIDO DO MÓDULO
+-- 4. NOMES EXIBIDOS DO MÓDULO
 --    O ON DUPLICATE não sobrescreve: um nome já personalizado é preservado.
 -- ---------------------------------------------------------------------
 
 INSERT INTO `configs` (`chave`, `valor`, `atualizada_em`) VALUES
-('consumo_nome', 'Consumo', NOW())
+('consumo_nome', 'Consumo', NOW()),
+('consumo_producao_nome', 'Produção', NOW())
 ON DUPLICATE KEY UPDATE `chave` = `chave`;
 
 -- ---------------------------------------------------------------------

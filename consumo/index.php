@@ -161,8 +161,8 @@ include INC . 'header.php';
 <?php if ($atrasados > 0 && tem_permissao('cozinha_ver')): ?>
 <div class="alert alert-danger d-flex align-items-center gap-2">
     <i class="bi bi-exclamation-triangle-fill"></i>
-    <b><?= $atrasados ?> item(ns) passaram de 15 minutos na cozinha.</b>
-    <a href="<?= url('consumo/cozinha/index.php') ?>" class="btn btn-sm btn-danger ms-auto">Ver na cozinha</a>
+    <b><?= $atrasados ?> item(ns) passaram de 15 minutos na fila.</b>
+    <a href="<?= url('consumo/cozinha/index.php') ?>" class="btn btn-sm btn-danger ms-auto">Ver na <?= e(rotulo_producao()) ?></a>
 </div>
 <?php endif; ?>
 
@@ -187,7 +187,7 @@ include INC . 'header.php';
         <div class="card stat-card bg-grad-blue h-100">
             <div class="stat-label"><i class="bi bi-hourglass-split me-1"></i>Comandas abertas</div>
             <div class="stat-valor mt-1"><?= $abertas ?></div>
-            <div class="stat-extra"><?= $filaCozinha ?> item(ns) na cozinha</div>
+            <div class="stat-extra"><?= $filaCozinha ?> item(ns) na fila</div>
             <i class="bi bi-hourglass-split stat-ico"></i>
         </div>
     </div>
@@ -255,7 +255,7 @@ include INC . 'header.php';
     <div class="col-12 col-xl-7">
         <div class="card h-100">
             <div class="card-header-custom">
-                <i class="bi bi-grid-3x3-gap me-2"></i>Salão
+                <i class="bi bi-grid-3x3-gap me-2"></i>Atendimento
                 <a href="<?= url('consumo/mesas/index.php') ?>" class="btn btn-sm btn-soft ms-auto">Ver mesas</a>
             </div>
             <div class="card-body-custom">
@@ -299,9 +299,9 @@ include INC . 'header.php';
     <div class="col-12 <?= tem_permissao('mesas_ver') ? 'col-xl-5' : 'col-xl-6' ?>">
         <div class="card h-100">
             <div class="card-header-custom">
-                <i class="bi bi-fire me-2"></i>Fila da cozinha
+                <i class="bi bi-fire me-2"></i>Fila de <?= e(rotulo_producao()) ?>
                 <?php if (tem_permissao('cozinha_ver')): ?>
-                <a href="<?= url('consumo/cozinha/index.php') ?>" class="btn btn-sm btn-soft ms-auto">Abrir KDS</a>
+                <a href="<?= url('consumo/cozinha/index.php') ?>" class="btn btn-sm btn-soft ms-auto">Abrir <?= e(rotulo_producao()) ?></a>
                 <?php endif; ?>
             </div>
             <div class="card-body-custom p-0">

@@ -43,7 +43,7 @@ $paginaConsumo = strpos((string)($_SERVER['SCRIPT_NAME'] ?? ''), '/consumo/') !=
 <body class="app-body">
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
-        <a class="sidebar-brand" href="<?= url('dashboard/index.php') ?>">
+        <a class="sidebar-brand" href="<?= url(pagina_inicial() ?: 'login/logout.php') ?>">
             <span class="logo-ico bi bi-currency-dollar"></span>
             <span><?= e($nomeEmpresa) ?></span>
         </a>

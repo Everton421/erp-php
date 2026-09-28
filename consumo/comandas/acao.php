@@ -46,7 +46,7 @@ try {
             [$item, $comanda] = $contexto($itemId);
 
             if ((string)$item['status'] !== 'PENDENTE') {
-                json_resposta(false, 'A quantidade só pode ser alterada antes de a cozinha iniciar o preparo.', null, 409);
+                json_resposta(false, 'A quantidade só pode ser alterada antes de ' . rotulo_producao() . ' iniciar o preparo.', null, 409);
             }
 
             $quantidade = parse_decimal($_POST['qtd'] ?? '1');

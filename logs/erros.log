@@ -98,3 +98,43 @@ Stack trace:
 [28-Sep-2026 10:01:22 America/Sao_Paulo] [BANCO] Falha de conexão: SQLSTATE[HY000] [2002] Nenhuma conexão pôde ser feita porque a máquina de destino as recusou ativamente
 [28-Sep-2026 12:43:19 America/Sao_Paulo] [BANCO] Falha de conexão: SQLSTATE[HY000] [2002] Nenhuma conexão pôde ser feita porque a máquina de destino as recusou ativamente
 [28-Sep-2026 12:48:03 America/Sao_Paulo] [BANCO] Falha de conexão: SQLSTATE[HY000] [2002] Nenhuma conexão pôde ser feita porque a máquina de destino as recusou ativamente
+[28-Sep-2026 13:54:34 America/Sao_Paulo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'c.data_abertura' in 'where clause' in C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php:55
+Stack trace:
+#0 C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php(55): PDO->prepare('SELECT COUNT(*)...')
+#1 {main}
+  thrown in C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php on line 55
+[28-Sep-2026 13:55:00 America/Sao_Paulo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'c.data_abertura' in 'where clause' in C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php:55
+Stack trace:
+#0 C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php(55): PDO->prepare('SELECT COUNT(*)...')
+#1 {main}
+  thrown in C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php on line 55
+[28-Sep-2026 13:55:07 America/Sao_Paulo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'c.data_abertura' in 'where clause' in C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php:55
+Stack trace:
+#0 C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php(55): PDO->prepare('SELECT COUNT(*)...')
+#1 {main}
+  thrown in C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php on line 55
+[28-Sep-2026 13:55:13 America/Sao_Paulo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'c.data_abertura' in 'where clause' in C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php:55
+Stack trace:
+#0 C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php(55): PDO->prepare('SELECT COUNT(*)...')
+#1 {main}
+  thrown in C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php on line 55
+[28-Sep-2026 13:55:18 America/Sao_Paulo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'c.data_abertura' in 'where clause' in C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php:55
+Stack trace:
+#0 C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php(55): PDO->prepare('SELECT COUNT(*)...')
+#1 {main}
+  thrown in C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php on line 55
+[28-Sep-2026 13:55:23 America/Sao_Paulo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'c.data_abertura' in 'where clause' in C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php:55
+Stack trace:
+#0 C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php(55): PDO->prepare('SELECT COUNT(*)...')
+#1 {main}
+  thrown in C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php on line 55
+[28-Sep-2026 13:55:38 America/Sao_Paulo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000]: General error: 2031 No data supplied for parameters in prepared statement in C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php:138
+Stack trace:
+#0 C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php(138): PDO->query('SELECT i.status...')
+#1 {main}
+  thrown in C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php on line 138
+[28-Sep-2026 13:55:42 America/Sao_Paulo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000]: General error: 2031 No data supplied for parameters in prepared statement in C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php:138
+Stack trace:
+#0 C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php(138): PDO->query('SELECT i.status...')
+#1 {main}
+  thrown in C:\xampp\htdocs\vendasapp\consumo\relatorios\index.php on line 138

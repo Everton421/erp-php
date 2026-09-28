@@ -23,6 +23,21 @@ function rotulo_consumo(): string
     return $nome !== '' ? $nome : 'Consumo';
 }
 
+/**
+ * Nome exibido da fila de preparo, configurável em Configurações.
+ * Padrão "Produção", para que o mesmo sistema sirva a restaurantes,
+ * clínicas, salões de beleza e qualquer outro estabelecimento com comanda.
+ * A pasta consumo/cozinha/ e as chaves cozinha_* são internas e não devem
+ * aparecer em rótulos: use sempre rotulo_producao().
+ */
+function rotulo_producao(): string
+{
+    $nome = function_exists('obter_config') ? (string)obter_config('consumo_producao_nome', '') : '';
+    $nome = trim($nome);
+
+    return $nome !== '' ? $nome : 'Produção';
+}
+
 /* =========================================================
  * MESA
  * ========================================================= */

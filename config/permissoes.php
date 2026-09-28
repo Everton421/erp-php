@@ -10,6 +10,9 @@ function lista_permissoes(): array
     $rotulo = static function (): string {
         return function_exists('rotulo_consumo') ? rotulo_consumo() : 'Consumo';
     };
+    $rotuloProd = static function (): string {
+        return function_exists('rotulo_producao') ? rotulo_producao() : 'Produção';
+    };
 
     return [
         'dashboard' => [
@@ -96,8 +99,8 @@ function lista_permissoes(): array
             'comandas_cancelar'      => 'Comandas - Cancelar',
             'comandas_desconto'      => 'Comandas - Aplicar desconto/acréscimo',
             'comandas_imprimir'      => 'Comandas - Imprimir cupom',
-            'cozinha_ver'            => 'Produção - Visualizar pedidos',
-            'cozinha_alterar_status' => 'Produção - Alterar status',
+            'cozinha_ver'            => $rotuloProd() . ' - Visualizar pedidos',
+            'cozinha_alterar_status' => $rotuloProd() . ' - Alterar status',
             'caixa_consumo_ver'      => 'Caixa do ' . $rotulo() . ' - Visualizar',
             'caixa_consumo_pagar'    => 'Caixa do ' . $rotulo() . ' - Receber pagamento',
             'consumo_relatorios'     => $rotulo() . ' - Relatórios',
