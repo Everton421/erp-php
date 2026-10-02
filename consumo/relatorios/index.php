@@ -90,10 +90,12 @@ $stmt->execute($paramsData);
 $itensVendidos = $stmt->fetchAll();
 
 /* ================= Por categoria ================= */
-$sql = "SELECT COALESCE(cat.nome, 'SEM CATEGORIA') AS categoria,
+$sql = "SELECT COALESCE(cat.nome, pcat.nome, 'SEM CATEGORIA') AS categoria,
                SUM(i.quantidade) AS qtd, SUM(i.total) AS total
           FROM comanda_itens i
           JOIN comandas c ON c.id = i.comanda_id
+          LEFT JOIN produtos p ON p.id = i.produto_id
+          LEFT JOIN categorias pcat ON pcat.id = p.categoria_id
           LEFT JOIN cardapio_itens ci ON ci.id = i.cardapio_item_id
           LEFT JOIN cardapio_categorias cat ON cat.id = ci.categoria_id
          WHERE c.status <> 'CANCELADA' AND i.status <> 'CANCELADO'
@@ -284,9 +286,6 @@ include INC . 'header.php';
                             </tr>
                         </thead>
                         <tbody>
-                        <?php if (!$itensVendidos): ?>
-                            <tr><td colspan="4" class="text-center text-muted py-4">Nenhum item vendido no período.</td></tr>
-                        <?php endif; ?>
                         <?php $pos = 0; foreach ($itensVendidos as $iv): $pos++; ?>
                         <tr>
                             <td class="text-muted fw-bold"><?= $pos ?></td>
@@ -318,9 +317,6 @@ include INC . 'header.php';
                             </tr>
                         </thead>
                         <tbody>
-                        <?php if (!$porGarcom): ?>
-                            <tr><td colspan="5" class="text-center text-muted py-4">Nenhuma comanda no período.</td></tr>
-                        <?php endif; ?>
                         <?php foreach ($porGarcom as $g): ?>
                         <tr>
                             <td class="fw-semibold"><?= e($g['nome']) ?></td>
@@ -354,9 +350,6 @@ include INC . 'header.php';
                             </tr>
                         </thead>
                         <tbody>
-                        <?php if (!$porForma): ?>
-                            <tr><td colspan="4" class="text-center text-muted py-4">Nenhum pagamento no período.</td></tr>
-                        <?php endif; ?>
                         <?php
                         $somaFormas = 0.0;
                         foreach ($porForma as $f) {

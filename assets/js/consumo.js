@@ -22,51 +22,191 @@ CONSUMO.posts = function (arquivo, dados) {
     });
 };
 
-/* ------------------ Seletor de cardápio ------------------ */
-CONSUMO.cardapio = {
+/* ------------------ Seletor de produtos ------------------ */
+CONSUMO.produtos = {
     categorias: [],
     itens: [],
+    termo: '',
+    reqAtual: 0,
+    timer: null,
+    alvo: null,
 
     montar: function ($alvo) {
-        const self = this;
         if (!$alvo || !$alvo.length) return;
-        if (self.itens.length) {
-            self.render($alvo);
-            return;
-        }
-        self.posts('dados.php?acao=cardapio', {}).done(function (res) {
-            if (!res || !res.ok) {
-                $alvo.html('<div class="text-center text-muted small py-3">Cardápio indisponível.</div>');
-                return;
-            }
-            self.categorias = res.dados.categorias || [];
-            self.itens = res.dados.itens || [];
-            self.render($alvo);
-        });
+        this.alvo = $alvo;
+        this.carregar('');
     },
 
-    render: function ($alvo) {
+    buscar: function (termo) {
         const self = this;
+        if (!self.alvo || !self.alvo.length) return;
+
+        self.termo = $.trim(termo || '');
+        self.carregar(self.termo);
+    },
+
+    carregar: function (termo) {
+        const self = this;
+        if (!self.alvo) return;
+
+        // Respostas fora de ordem: só a última requisição pode renderizar.
+        const reqId = ++self.reqAtual;
+        const params = { acao: 'produtos', t: Date.now() };
+        if (termo) params.q = termo;
+
+        self.marcarCarregando(!!termo);
+
+        $.getJSON(CONSUMO.url('consumo/dados.php'), params)
+            .done(function (res) {
+                if (reqId !== self.reqAtual) return;
+                try {
+                    if (!res || !res.ok) {
+                        self.marcarVazio('Produtos indisponíveis.');
+                        return;
+                    }
+                    self.categorias = res.dados.categorias || [];
+                    self.itens = res.dados.itens || [];
+                    self.render();
+                } catch (e) {
+                    self.marcarVazio('Erro ao montar a lista de produtos.');
+                    APP.toast('error', 'Não foi possível montar a lista de produtos.');
+                    if (window.console) console.error(e);
+                }
+            })
+            .fail(function () {
+                if (reqId !== self.reqAtual) return;
+                self.marcarVazio('Não foi possível carregar os produtos.');
+            });
+    },
+
+    render: function () {
+        const self = this;
+        const $alvo = self.alvo;
+        if (!$alvo || !$alvo.length) return;
+
+        self.marcarCarregando(false);
+
         if (!self.itens.length) {
-            $alvo.html('<div class="text-center text-muted small py-3">Nenhum item ativo no cardápio.</div>');
+            // marcarVazio já escreve a mensagem; não esvaziar depois.
+            self.marcarVazio(self.termo
+                ? 'Nenhum produto encontrado para "' + self.termo + '".'
+                : 'Nenhum produto ativo cadastrado.');
             return;
         }
-        const html = self.categorias.map(function (cat) {
-            const itens = self.itens.filter(function (i) { return (i.categoria_id || 0) === (cat.id || 0); });
-            if (!itens.length) return '';
-            return '<div class="categoria-bloco"><h4>' + APP.esc(cat.nome) + '</h4><div class="cardapio-picker">'
-                + itens.map(function (i) {
-                    return '<button type="button" class="cardapio-btn js-add-item" data-item=\''
-                        + APP.esc(JSON.stringify(i)) + '\'>'
-                        + (cat.cor ? '<span class="c" style="background:' + APP.esc(cat.cor) + '"></span>' : '')
-                        + '<span class="n">' + APP.esc(i.descricao) + '</span>'
-                        + '<span class="p">' + APP.fmtMoeda(i.preco) + '</span></button>';
-                }).join('')
-                + '</div></div>';
+
+        // O id 0 é o grupo sintético "Sem categoria": entra na lista junto
+        // com as categorias reais para que nenhum produto fique fora.
+        let blocos = '';
+
+        if (self.termo) {
+            // Busca não agrupa: o atendente quer o produto, não a prateleira.
+            blocos = '<div class="produtos-picker">' + self.botoes(self.itens, null) + '</div>';
+        } else {
+            // Uma passada só: filtrar itens por categoria dentro de um map
+            // custa O(categorias x produtos) e pesa com catálogo grande.
+            const porCategoria = new Map();
+            self.itens.forEach(function (i) {
+                const chave = i.categoria_id || 0;
+                if (!porCategoria.has(chave)) porCategoria.set(chave, []);
+                porCategoria.get(chave).push(i);
+            });
+
+            blocos = self.categorias.map(function (cat) {
+                const itens = porCategoria.get(cat.id || 0) || [];
+                if (!itens.length) return '';
+                return '<div class="categoria-bloco"><h4>' + APP.esc(cat.nome) + '</h4>'
+                    + '<div class="produtos-picker">' + self.botoes(itens, cat) + '</div></div>';
+            }).join('');
+        }
+
+        if (!blocos) {
+            // Defensivo: itens vieram, mas nenhum casou com um bloco.
+            self.marcarVazio('Nenhum produto disponível no momento.');
+            return;
+        }
+
+        $alvo.html('<div class="produtos-scroll">' + blocos + '</div>');
+        self.marcarContagem(self.itens.length);
+    },
+
+    botoes: function (itens, cat) {
+        return itens.map(function (i) {
+            return '<button type="button" class="produtos-btn js-add-item" data-item=\''
+                + APP.esc(JSON.stringify(i)) + '\'>'
+                + (cat && cat.cor ? '<span class="c" style="background:' + APP.esc(cat.cor) + '"></span>' : '')
+                + '<span class="n">' + APP.esc(i.descricao) + '</span>'
+                + (i.codigo ? '<span class="k">' + APP.esc(i.codigo) + '</span>' : '')
+                + '<span class="p">' + APP.fmtMoeda(i.preco) + '</span></button>';
         }).join('');
-        $alvo.html(html || '<div class="text-center text-muted small py-3">Nenhum item ativo no cardápio.</div>');
+    },
+
+    marcarCarregando: function (soBusca) {
+        const $alvo = this.alvo;
+        if (!$alvo || !$alvo.length) return;
+
+        if (soBusca) {
+            $alvo.addClass('is-buscando');
+            this.marcarContagem(null);
+        } else {
+            $alvo.removeClass('is-buscando');
+        }
+    },
+
+    marcarVazio: function (msg) {
+        const $alvo = this.alvo;
+        if (!$alvo || !$alvo.length) return;
+        $alvo.removeClass('is-buscando')
+            .html('<div class="text-center text-muted small py-3">' + APP.esc(msg) + '</div>');
+        this.marcarContagem(0);
+    },
+
+    marcarContagem: function (total) {
+        const $status = $('[data-busca-status]');
+        if (!$status.length) return;
+
+        if (total === null) {
+            $status.text('Buscando...').show();
+            return;
+        }
+
+        if (!this.termo) {
+            $status.hide().text('');
+            return;
+        }
+
+        $status.text(total === 1 ? '1 produto encontrado' : total + ' produtos encontrados').show();
     }
 };
+
+/* Busca no seletor de produtos (debounce de 250ms) */
+$(document).on('input', '.js-busca-produto', function () {
+    const $input = $(this);
+    const termo = $input.val();
+    const $limpa = $('.js-limpa-busca');
+
+    $limpa.toggleClass('d-none', !$.trim(termo));
+
+    clearTimeout(CONSUMO.produtos.timer);
+    CONSUMO.produtos.timer = setTimeout(function () {
+        CONSUMO.produtos.buscar(termo);
+    }, 250);
+});
+
+$(document).on('click', '.js-limpa-busca', function () {
+    const $input = $('.js-busca-produto');
+    $input.val('').trigger('focus');
+    $('.js-limpa-busca').addClass('d-none');
+    CONSUMO.produtos.buscar('');
+});
+
+/* Enter no campo deve focar o primeiro resultado, nunca reenviar o form */
+$(document).on('keydown', '.js-busca-produto', function (e) {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+
+    const $primeiro = $('[data-produtos-picker] .js-add-item').first();
+    if ($primeiro.length) $primeiro.trigger('click');
+});
 
 /* ------------------ Comanda: adição de itens ------------------ */
 $(document).on('click', '.js-add-item', function () {
@@ -80,7 +220,7 @@ $(document).on('click', '.js-add-item', function () {
     const $form = $('#formItemComanda');
     if (!$form.length) return;
 
-    $form.find('[name="item_id"]').val(item.id);
+    $form.find('[name="produto_id"]').val(item.id);
     $form.find('[name="qtd"]').val(1);
     $form.trigger('submit');
 });
@@ -204,9 +344,9 @@ CONSUMO.kds = {
         $('[data-kds-count="pronto"]').text(pront.length);
         $('[data-kds-count="atrasado"]').text(pend.concat(prep).filter((p) => (p.minutos || 0) > this.limite).length);
 
-        const bloco = function (itens) {
+        const bloco = (itens) => {
             if (!itens.length) return '<div class="text-center text-muted small py-3">Nada por aqui.</div>';
-            return itens.map((p) => this.card(p)).join('');
+            return itens.map((p) => CONSUMO.kds.card(p)).join('');
         };
 
         $('[data-kds-lista="PENDENTE"]').html(bloco(pend));
@@ -216,7 +356,7 @@ CONSUMO.kds = {
 
     atualizar: function () {
         const self = this;
-        $.getJSON(CONSUMO.url('consumo/dados.php') + '?acao=kds&t=' + Date.now(), null, function (res) {
+        $.getJSON(CONSUMO.url('consumo/dados.php') + '?acao=producao&t=' + Date.now(), null, function (res) {
             if (res && res.ok) self.render(res);
         });
     },
@@ -228,6 +368,7 @@ CONSUMO.kds = {
     },
 
     cronometros: function () {
+        const self = this;
         $('[data-minutos]').each(function () {
             const $el = $(this);
             const base = parseInt($el.data('minutos'), 10) || 0;
@@ -253,7 +394,7 @@ $(document).on('click', '.js-kds-status', function (e) {
     e.preventDefault();
     const $btn = $(this);
     $btn.prop('disabled', true);
-    CONSUMO.acao('cozinha/acao.php', {
+    CONSUMO.acao('producao/acao.php', {
         csrf_token: APP.csrf,
         item_id: $btn.data('item'),
         status: $btn.data('status')
@@ -493,8 +634,8 @@ $(function () {
         CONSUMO.mesas.iniciar(seg);
     }
 
-    if ($('[data-cardapio-picker]').length) {
-        CONSUMO.cardapio.montar($('[data-cardapio-picker]'));
+    if ($('[data-produtos-picker]').length) {
+        CONSUMO.produtos.montar($('[data-produtos-picker]'));
     }
 
     if ($('[data-pg-pago]').length) {

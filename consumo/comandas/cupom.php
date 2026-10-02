@@ -35,7 +35,7 @@ $qtdItens = count(array_filter($itens, fn($i) => (string)$i['status'] !== 'CANCE
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cupom <?= e($comanda['numero']) ?></title>
-    <link rel="stylesheet" href="<?= url(ASSETS . '/css/app.css') ?>">
+    <link rel="stylesheet" href="<?= url_asset(ASSETS . '/css/app.css') ?>">
     <style>
         @page { size: 80mm auto; margin: 4mm; }
         * { box-sizing: border-box; }

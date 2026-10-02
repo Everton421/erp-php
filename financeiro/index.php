@@ -128,6 +128,13 @@ include INC . 'header.php';
     </div>
 </div>
 
+<?php if (!$movimentos): ?>
+<div class="alert alert-info d-flex align-items-center gap-2">
+    <i class="bi bi-info-circle"></i>
+    Sem movimentações no período.
+</div>
+<?php endif; ?>
+
 <div class="card mb-3">
     <div class="card-header-custom"><i class="bi bi-bar-chart"></i>Variação diária</div>
     <div class="card-body-custom">
@@ -169,9 +176,6 @@ include INC . 'header.php';
                         <td><?= e(buscar_linha('usuarios', (int)$m['usuario_id'])['nome'] ?? '-') ?></td>
                     </tr>
                     <?php endforeach; ?>
-                    <?php if (!$movimentos): ?>
-                    <tr><td colspan="6" class="text-center text-muted py-4">Sem movimentações no período.</td></tr>
-                    <?php endif; ?>
                 </tbody>
             </table>
         </div>

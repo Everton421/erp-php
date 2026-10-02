@@ -6,23 +6,39 @@ $acao = (string)($_GET['acao'] ?? '');
 $pdo = db();
 
 /* =========================================================
- * CARDÁPIO — alimenta o seletor do atendente
+ * PRODUTOS — alimenta o seletor do atendente
+ * Catálogo vem de `produtos`/`categorias`, não do estoque.
+ * Aceita `q`: descrição, código ou descrição complementar.
  * ========================================================= */
-if ($acao === 'cardapio') {
-    if (!tem_permissao('comandas_item')) {
-        json_resposta(false, 'Sem permissão para acessar o cardápio.', null, 403);
+if ($acao === 'produtos') {
+    if (!tem_permissao('comandas_item') && !tem_permissao('cardapio_ver')) {
+        json_resposta(false, 'Sem permissão para acessar os produtos.', null, 403);
     }
 
+    $busca = trim((string)($_GET['q'] ?? ''));
+    if (mb_strlen($busca) > 60) {
+        $busca = mb_substr($busca, 0, 60);
+    }
+
+    $itens = $busca !== '' ? consumo_produtos(['busca' => $busca]) : consumo_produtos();
+
+    // `consumo_categorias_seletor()` anexa o grupo "Sem categoria" quando há
+    // produto órfão; sem ele o produto não casaria com nenhum bloco.
     json_resposta(true, '', [
-        'categorias' => cardapio_categorias(true),
-        'itens' => cardapio_itens(['ativo' => 1]),
+        'categorias' => consumo_categorias_seletor(),
+        'itens'      => $itens,
+        'total'      => count($itens),
+        'busca'      => $busca,
     ]);
 }
 
 /* =========================================================
  * PRODUÇÃO — um cartão por item, do mais antigo para o mais novo
  * ========================================================= */
-if ($acao === 'kds') {
+if ($acao === 'producao') {
+    if (!consumo_producao_ativa()) {
+        json_resposta(false, rotulo_producao() . ' está desativado nas configurações.', null, 403);
+    }
     if (!tem_permissao('cozinha_ver')) {
         json_resposta(false, 'Sem permissão para acessar ' . rotulo_producao() . '.', null, 403);
     }

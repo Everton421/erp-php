@@ -66,8 +66,8 @@ function link_menu_rota(string $caminho, array $modulosAtivos, string $moduloAtu
     <?php if (tem_permissao('comandas_ver')): ?>
     <?php link_menu_rota('consumo/comandas/index.php', ['consumo/comandas'], $moduloAtual, 'receipt-cutoff', 'Comandas'); ?>
     <?php endif; ?>
-    <?php if (tem_permissao('cozinha_ver')): ?>
-    <?php link_menu_rota('consumo/cozinha/index.php', ['consumo/cozinha'], $moduloAtual, 'fire', rotulo_producao()); ?>
+    <?php if (consumo_producao_ativa() && tem_permissao('cozinha_ver')): ?>
+    <?php link_menu_rota('consumo/producao/index.php', ['consumo/producao'], $moduloAtual, 'fire', rotulo_producao()); ?>
     <?php endif; ?>
     <?php if (tem_permissao('caixa_consumo_ver')): ?>
     <?php link_menu_rota('consumo/caixa/index.php', ['consumo/caixa'], $moduloAtual, 'cash-coin', 'Caixa do ' . rotulo_consumo()); ?>
@@ -76,7 +76,7 @@ function link_menu_rota(string $caminho, array $modulosAtivos, string $moduloAtu
     <?php link_menu_rota('consumo/mesas/index.php', ['consumo/mesas'], $moduloAtual, 'grid-3x3-gap', 'Mesas'); ?>
     <?php endif; ?>
     <?php if (tem_permissao('cardapio_ver')): ?>
-    <?php link_menu_rota('consumo/cardapio/index.php', ['consumo/cardapio'], $moduloAtual, 'journal-text', 'Cardápio'); ?>
+    <?php link_menu_rota('consumo/cardapio/index.php', ['consumo/cardapio'], $moduloAtual, 'box-seam', 'Produtos'); ?>
     <?php endif; ?>
     <?php if (tem_permissao('consumo_relatorios')): ?>
     <?php link_menu_rota('consumo/relatorios/index.php', ['consumo/relatorios'], $moduloAtual, 'graph-up', 'Relatórios do ' . rotulo_consumo()); ?>

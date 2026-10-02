@@ -83,26 +83,6 @@ if (tem_permissao('fornecedores_ver') || tem_permissao('compras_criar')) {
     }
 }
 
-if (tem_permissao('cardapio_ver')) {
-    $param = '%' . $q . '%';
-    $stmt = db()->prepare(
-        'SELECT i.id, i.codigo, i.descricao, i.preco, c.nome AS categoria
-           FROM cardapio_itens i
-           LEFT JOIN cardapio_categorias c ON c.id = i.categoria_id
-          WHERE i.ativo = 1 AND (i.descricao LIKE ? OR i.codigo LIKE ?)
-          LIMIT 5'
-    );
-    $stmt->execute([$param, $param]);
-    foreach ($stmt->fetchAll() as $i) {
-        $resultados[] = [
-            'tipo' => 'cardápio',
-            'label' => $i['descricao'],
-            'sub' => ($i['categoria'] ?: 'Sem categoria') . ' • Preço: ' . formatar_moeda($i['preco']),
-            'url' => '/consumo/cardapio/form.php?id=' . (int)$i['id'],
-        ];
-    }
-}
-
 if (tem_permissao('comandas_ver')) {
     $param = '%' . $q . '%';
     $somenteMinhas = !tem_permissao('comandas_ver_todas');

@@ -3,6 +3,10 @@ require_once __DIR__ . '/../../config/config.php';
 exigir_login();
 exigir_permissao('cozinha_alterar_status');
 
+if (!consumo_producao_ativa()) {
+    json_resposta(false, rotulo_producao() . ' está desativado nas configurações.', null, 403);
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     json_resposta(false, 'Método não permitido.', null, 405);
 }
@@ -56,7 +60,7 @@ try {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
-    erro_banco($e, 'status_item_cozinha');
+    erro_banco($e, 'status_item_producao');
     json_resposta(false, 'Não foi possível alterar o status do item.', null, 500);
 }
 

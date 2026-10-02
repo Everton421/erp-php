@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $campos = [
         'empresa_nome', 'empresa_cnpj', 'empresa_endereco', 'empresa_telefone', 'empresa_email',
-        'consumo_nome', 'consumo_producao_nome',
+        'consumo_nome', 'consumo_producao_nome', 'consumo_producao_ativa',
         'moeda_simbolo', 'casas_decimais', 'estoque_negativo', 'venda_exige_cliente',
         'atualizar_custo_compra', 'juros_padrao', 'multa_padrao', 'dias_vencimento', 'nota_rodape_venda',
         'venda_tipo_pedido_padrao', 'compra_tipo_pedido_padrao',
@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     foreach ($campos as $campo) {
         $valor = sanear($_POST[$campo] ?? '');
-        if (in_array($campo, ['estoque_negativo', 'venda_exige_cliente', 'atualizar_custo_compra'], true)) {
+        if (in_array($campo, ['estoque_negativo', 'venda_exige_cliente', 'atualizar_custo_compra', 'consumo_producao_ativa'], true)) {
             $valor = isset($_POST[$campo]) ? '1' : '0';
         }
         $stmt->execute([$campo, $valor]);
@@ -87,6 +87,17 @@ $formas = db()->query('SELECT id, nome FROM formas_pagamento WHERE ativo = 1 ORD
                             <input type="text" class="form-control" name="consumo_producao_nome" maxlength="40"
                                    placeholder="Produção" value="<?= e(obter_config('consumo_producao_nome', 'Produção')) ?>">
                             <small class="form-text text-muted">Cabeçalho da fila de preparo, no menu e nos títulos: Produção, Atendimento, Enfermagem, Oficina…</small>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="consumo_producao_ativa" id="cfgProd" value="1" <?= obter_config('consumo_producao_ativa', '1') === '1' ? 'checked' : '' ?>>
+                                <label class="form-check-label" for="cfgProd">Usar <?= e(rotulo_producao()) ?></label>
+                            </div>
+                            <small class="form-text text-muted">
+                                Desative para estabelecimentos que só registram a comanda e cobram no fim:
+                                os itens já nascem entregues, a fila de preparo some e o fechamento não exige que
+                                os itens tenham sido preparados.
+                            </small>
                         </div>
                     </div>
                 </div>

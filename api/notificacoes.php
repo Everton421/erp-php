@@ -114,7 +114,7 @@ if (tem_permissao('caixa_consumo_ver')) {
 }
 
 // 5. Consumo: itens na fila da produção
-if (tem_permissao('cozinha_ver')) {
+if (consumo_producao_ativa() && tem_permissao('cozinha_ver')) {
     $fila = (int)$pdo->query(
         "SELECT COUNT(*)
            FROM comanda_itens i
@@ -130,7 +130,7 @@ if (tem_permissao('cozinha_ver')) {
             'classe' => 'text-warning',
             'titulo' => $fila . ' pedido(s) na fila de ' . lcfirst(rotulo_producao()),
             'descricao' => 'Itens aguardando preparo ou finalização.',
-            'url' => url('consumo/cozinha/index.php'),
+            'url' => url('consumo/producao/index.php'),
         ];
     }
 }

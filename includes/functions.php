@@ -56,6 +56,22 @@ function url(string $caminho = ''): string
     return BASE_URL . '/' . ltrim($caminho, '/');
 }
 
+/**
+ * URL de asset local com cache-busting (?v=timestamp do arquivo).
+ * Usar sempre em vez de url(ASSETS . ...) para o navegador nunca
+ * servir uma versão antiga de JS/CSS após uma alteração.
+ */
+function url_asset(string $caminho): string
+{
+    $url = url($caminho);
+    if (strpos($url, '?') !== false) {
+        return $url;
+    }
+    $arquivo = BASE_PATH . '/' . ltrim($caminho, '/');
+    $versao = is_file($arquivo) ? (string)filemtime($arquivo) : '1';
+    return $url . '?v=' . $versao;
+}
+
 function redirecionar(string $caminho): void
 {
     header('Location: ' . url($caminho));
@@ -76,15 +92,18 @@ function voltar(): void
 /**
  * Primeira tela que o usuário logado tem permissão de acessar.
  * A ordem vai do mais específico ao mais geral: perfis operacionais como
- * Produção caem na fila da cozinha em vez do painel genérico, que ambos
- * por possuírem 'consumo_ver'.
+ * Produção caem na fila de preparo em vez do painel genérico, que ambos
+ * por possuírem 'consumo_ver'. Com a produção desativada a fila sai da
+ * lista, e o perfil cai no painel.
  * Retorna string vazia quando o usuário não tem nenhuma permissão.
  */
 function pagina_inicial(): string
 {
-    $rotas = [
-        'dashboard_ver'     => 'dashboard/index.php',
-        'cozinha_ver'       => 'consumo/cozinha/index.php',
+    $rotas = ['dashboard_ver' => 'dashboard/index.php'];
+    if (consumo_producao_ativa()) {
+        $rotas['cozinha_ver'] = 'consumo/producao/index.php';
+    }
+    $rotas += [
         'caixa_consumo_ver' => 'consumo/caixa/index.php',
         'comandas_ver'      => 'consumo/comandas/index.php',
         'consumo_ver'       => 'consumo/index.php',

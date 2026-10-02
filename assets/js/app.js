@@ -127,7 +127,9 @@ APP.initDataTables = function () {
         pageLength: 15,
         lengthMenu: [[10, 15, 25, 50, -1], [10, 15, 25, 50, 'Todos']],
         language: {
-            url: 'https://cdn.datatables.net/plug-ins/1.13.8/i18n/pt-BR.json'
+            url: 'https://cdn.datatables.net/plug-ins/1.13.8/i18n/pt-BR.json',
+            zeroRecords: 'Nenhum registro encontrado.',
+            emptyTable: 'Nenhum registro encontrado.'
         }
     });
 
@@ -221,8 +223,17 @@ APP.ajax = function (url, dados, onOk, onErr) {
             else APP.toast('error', 'Ocorreu um erro inesperado.');
         }
     }).fail(function (xhr) {
-        if (onErr) onErr({ msg: 'Falha na comunicação com o servidor.' });
-        else APP.toast('error', 'Falha na comunicação com o servidor.');
+        // Respostas 4xx/5xx do sistema já carregam { ok:false, msg }.
+        // Só tratamos como falha de rede quando não há JSON para extrair.
+        let res = xhr.responseJSON;
+        if (!res && typeof xhr.responseText === 'string' && xhr.responseText) {
+            try { res = JSON.parse(xhr.responseText); } catch (e) { res = null; }
+        }
+        const erro = (res && typeof res === 'object')
+            ? res
+            : { msg: 'Falha na comunicação com o servidor.' };
+        if (onErr) onErr(erro);
+        else APP.toast('error', erro.msg || 'Ocorreu um erro inesperado.');
     });
 };
 
@@ -279,7 +290,7 @@ APP.buscaGlobal = function () {
                     $box.empty();
                     (res.dados || []).slice(0, 12).forEach((i) => {
                         const icone = { produto: 'box-seam', cliente: 'person-badge', fornecedor: 'truck',
-                                        'cardápio': 'journal-text', comanda: 'receipt-cutoff' }[i.tipo] || 'link';
+                                        comanda: 'receipt-cutoff' }[i.tipo] || 'link';
                         const sub = i.sub || '';
                         $box.append(
                             '<a class="br-item" href="' + APP.baseUrl + i.url + '">' +

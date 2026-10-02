@@ -120,6 +120,13 @@ include INC . 'header.php';
     </div>
 </div>
 
+<?php if (!$comandas): ?>
+<div class="alert alert-info d-flex align-items-center gap-2">
+    <i class="bi bi-info-circle"></i>
+    Nenhuma comanda encontrada com os filtros aplicados.
+</div>
+<?php endif; ?>
+
 <div class="card">
     <div class="card-body">
         <div class="table-responsive">
@@ -138,14 +145,6 @@ include INC . 'header.php';
                     </tr>
                 </thead>
                 <tbody>
-                <?php if (!$comandas): ?>
-                    <tr>
-                        <td colspan="9" class="text-center text-muted py-4">
-                            <i class="bi bi-inbox d-block fs-3 mb-2"></i>
-                            Nenhuma comanda encontrada com os filtros aplicados.
-                        </td>
-                    </tr>
-                <?php endif; ?>
                 <?php foreach ($comandas as $c): ?>
                     <?php $saldo = max(0, (float)$c['total'] - (float)$c['valor_pago']); ?>
                     <tr class="<?= (string)$c['status'] === 'CANCELADA' ? 'opacity-75' : '' ?>">

@@ -19,17 +19,22 @@ $saldo = (float)$pdo->query(
     "SELECT COALESCE(SUM(GREATEST(total - valor_pago, 0)), 0) FROM comandas
       WHERE status = 'FECHADA' AND status_pagamento <> 'PAGO'"
 )->fetchColumn();
-$filaCozinha = (int)$pdo->query(
-    "SELECT COUNT(*) FROM comanda_itens i
-       JOIN comandas c ON c.id = i.comanda_id
-      WHERE c.status = 'ABERTA' AND i.status IN ('PENDENTE', 'PREPARANDO')"
-)->fetchColumn();
-$atrasados = (int)$pdo->query(
-    "SELECT COUNT(*) FROM comanda_itens i
-       JOIN comandas c ON c.id = i.comanda_id
-      WHERE c.status = 'ABERTA' AND i.status IN ('PENDENTE', 'PREPARANDO')
-        AND TIMESTAMPDIFF(MINUTE, i.data_pedido, NOW()) > 15"
-)->fetchColumn();
+$producaoAtiva = consumo_producao_ativa();
+$filaCozinha = 0;
+$atrasados = 0;
+if ($producaoAtiva) {
+    $filaCozinha = (int)$pdo->query(
+        "SELECT COUNT(*) FROM comanda_itens i
+           JOIN comandas c ON c.id = i.comanda_id
+          WHERE c.status = 'ABERTA' AND i.status IN ('PENDENTE', 'PREPARANDO')"
+    )->fetchColumn();
+    $atrasados = (int)$pdo->query(
+        "SELECT COUNT(*) FROM comanda_itens i
+           JOIN comandas c ON c.id = i.comanda_id
+          WHERE c.status = 'ABERTA' AND i.status IN ('PENDENTE', 'PREPARANDO')
+            AND TIMESTAMPDIFF(MINUTE, i.data_pedido, NOW()) > 15"
+    )->fetchColumn();
+}
 $ticket = $qtdComandasDia > 0 ? $hoje / $qtdComandasDia : 0.0;
 
 $meses = (float)$pdo->query(
@@ -60,19 +65,22 @@ foreach ($mesas as $m) {
     }
 }
 
-/* ================= Fila da cozinha ================= */
-$stmt = $pdo->query(
-    "SELECT i.id, i.descricao, i.quantidade, i.status, i.data_pedido,
-            c.numero AS comanda, m.numero AS mesa,
-            GREATEST(TIMESTAMPDIFF(MINUTE, i.data_pedido, NOW()), 0) AS minutos
-       FROM comanda_itens i
-       JOIN comandas c ON c.id = i.comanda_id
-       JOIN mesas m ON m.id = c.mesa_id
-      WHERE c.status = 'ABERTA' AND i.status IN ('PENDENTE', 'PREPARANDO')
-      ORDER BY i.data_pedido
-      LIMIT 12"
-);
-$fila = $stmt->fetchAll();
+/* ================= Fila de preparo ================= */
+$fila = [];
+if ($producaoAtiva) {
+    $stmt = $pdo->query(
+        "SELECT i.id, i.descricao, i.quantidade, i.status, i.data_pedido,
+                c.numero AS comanda, m.numero AS mesa,
+                GREATEST(TIMESTAMPDIFF(MINUTE, i.data_pedido, NOW()), 0) AS minutos
+           FROM comanda_itens i
+           JOIN comandas c ON c.id = i.comanda_id
+           JOIN mesas m ON m.id = c.mesa_id
+          WHERE c.status = 'ABERTA' AND i.status IN ('PENDENTE', 'PREPARANDO')
+          ORDER BY i.data_pedido
+          LIMIT 12"
+    );
+    $fila = $stmt->fetchAll();
+}
 
 /* ================= Comandas recentes ================= */
 $stmt = $pdo->query(
@@ -162,7 +170,7 @@ include INC . 'header.php';
 <div class="alert alert-danger d-flex align-items-center gap-2">
     <i class="bi bi-exclamation-triangle-fill"></i>
     <b><?= $atrasados ?> item(ns) passaram de 15 minutos na fila.</b>
-    <a href="<?= url('consumo/cozinha/index.php') ?>" class="btn btn-sm btn-danger ms-auto">Ver na <?= e(rotulo_producao()) ?></a>
+    <a href="<?= url('consumo/producao/index.php') ?>" class="btn btn-sm btn-danger ms-auto">Ver na <?= e(rotulo_producao()) ?></a>
 </div>
 <?php endif; ?>
 
@@ -187,7 +195,7 @@ include INC . 'header.php';
         <div class="card stat-card bg-grad-blue h-100">
             <div class="stat-label"><i class="bi bi-hourglass-split me-1"></i>Comandas abertas</div>
             <div class="stat-valor mt-1"><?= $abertas ?></div>
-            <div class="stat-extra"><?= $filaCozinha ?> item(ns) na fila</div>
+            <div class="stat-extra"><?= $producaoAtiva ? $filaCozinha . ' item(ns) na fila' : 'sem fila de preparo' ?></div>
             <i class="bi bi-hourglass-split stat-ico"></i>
         </div>
     </div>
@@ -252,7 +260,7 @@ include INC . 'header.php';
 
 <div class="row g-3 mb-3">
     <?php if (tem_permissao('mesas_ver')): ?>
-    <div class="col-12 col-xl-7">
+    <div class="col-12 <?= $producaoAtiva ? 'col-xl-7' : 'col-xl-12' ?>">
         <div class="card h-100">
             <div class="card-header-custom">
                 <i class="bi bi-grid-3x3-gap me-2"></i>Atendimento
@@ -296,12 +304,13 @@ include INC . 'header.php';
     </div>
     <?php endif; ?>
 
+    <?php if ($producaoAtiva): ?>
     <div class="col-12 <?= tem_permissao('mesas_ver') ? 'col-xl-5' : 'col-xl-6' ?>">
         <div class="card h-100">
             <div class="card-header-custom">
                 <i class="bi bi-fire me-2"></i>Fila de <?= e(rotulo_producao()) ?>
                 <?php if (tem_permissao('cozinha_ver')): ?>
-                <a href="<?= url('consumo/cozinha/index.php') ?>" class="btn btn-sm btn-soft ms-auto">Abrir <?= e(rotulo_producao()) ?></a>
+                <a href="<?= url('consumo/producao/index.php') ?>" class="btn btn-sm btn-soft ms-auto">Abrir <?= e(rotulo_producao()) ?></a>
                 <?php endif; ?>
             </div>
             <div class="card-body-custom p-0">
@@ -345,10 +354,11 @@ include INC . 'header.php';
             </div>
         </div>
     </div>
+    <?php endif; ?>
 </div>
 
 <div class="row g-3">
-    <div class="col-12 col-xl-8">
+    <div class="col-12 <?= $producaoAtiva || !tem_permissao('mesas_ver') ? 'col-xl-8' : 'col-xl-12' ?>">
         <div class="card h-100">
             <div class="card-header-custom"><i class="bi bi-bar-chart-line me-2"></i>Faturamento dos últimos 7 dias</div>
             <div class="card-body-custom">

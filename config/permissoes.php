@@ -86,8 +86,8 @@ function lista_permissoes(): array
         ],
         'consumo' => [
             'consumo_ver'            => $rotulo() . ' - Visualizar painel',
-            'cardapio_ver'           => 'Cardápio - Visualizar',
-            'cardapio_editar'        => 'Cardápio - Criar/editar',
+            'cardapio_ver'           => 'Produtos do consumo - Visualizar',
+            'cardapio_editar'        => 'Produtos do consumo - Manter',
             'mesas_ver'              => 'Mesas - Visualizar',
             'mesas_editar'           => 'Mesas - Criar/editar',
             'mesas_excluir'          => 'Mesas - Excluir',

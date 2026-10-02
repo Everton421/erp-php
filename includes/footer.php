@@ -70,7 +70,7 @@ while (($f = proximo_flash()) !== null) {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <?php if (!empty($paginaConsumo)): ?>
-    <script src="<?= url(ASSETS . '/js/consumo.js') ?>"></script>
+    <script src="<?= url_asset(ASSETS . '/js/consumo.js') ?>"></script>
     <?php endif; ?>
     <script>
         $(function () {

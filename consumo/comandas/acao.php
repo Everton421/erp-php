@@ -45,7 +45,7 @@ try {
             exigir_permissao('comandas_item');
             [$item, $comanda] = $contexto($itemId);
 
-            if ((string)$item['status'] !== 'PENDENTE') {
+            if (!item_editavel($item)) {
                 json_resposta(false, 'A quantidade só pode ser alterada antes de ' . rotulo_producao() . ' iniciar o preparo.', null, 409);
             }
 
@@ -57,9 +57,14 @@ try {
             $subtotal = round((float)$item['preco_unitario'] * $quantidade, 2);
             $pdo->beginTransaction();
             $stmt = $pdo->prepare(
-                "UPDATE comanda_itens SET quantidade = ?, subtotal = ?, total = ? WHERE id = ? AND status = 'PENDENTE'"
+                "UPDATE comanda_itens SET quantidade = ?, subtotal = ?, total = ?
+                  WHERE id = ? AND status = ?"
             );
-            $stmt->execute([$quantidade, $subtotal, $subtotal, $itemId]);
+            $stmt->execute([$quantidade, $subtotal, $subtotal, $itemId, $item['status']]);
+            if ($stmt->rowCount() !== 1) {
+                $pdo->rollBack();
+                $falhar('O item não pôde ser alterado porque mudou de status. Atualize a tela.', 409);
+            }
             comanda_recalcular((int)$comanda['id'], $pdo);
             $pdo->commit();
 
@@ -77,13 +82,13 @@ try {
             exigir_permissao('comandas_item');
             [$item, $comanda] = $contexto($itemId);
 
-            if ((string)$item['status'] !== 'PENDENTE') {
+            if (!item_editavel($item)) {
                 json_resposta(false, 'O item já está em preparo. Use a opção de cancelar item.', null, 409);
             }
 
             $pdo->beginTransaction();
-            $stmt = $pdo->prepare('DELETE FROM comanda_itens WHERE id = ? AND status = \'PENDENTE\'');
-            $stmt->execute([$itemId]);
+            $stmt = $pdo->prepare('DELETE FROM comanda_itens WHERE id = ? AND status = ?');
+            $stmt->execute([$itemId, $item['status']]);
             if ($stmt->rowCount() !== 1) {
                 $pdo->rollBack();
                 $falhar('O item não pôde ser removido porque já mudou de status.', 409);
@@ -141,6 +146,43 @@ try {
             json_resposta(true, 'Item cancelado e removido do total.');
             break;
 
+        /* ---------------- Status do item ---------------- */
+        case 'status':
+            exigir_permissao('comandas_item');
+            [$item, $comanda] = $contexto($itemId);
+
+            $novo = strtoupper(trim((string)($_POST['status'] ?? '')));
+            if (!in_array($novo, ['PENDENTE', 'PREPARANDO', 'PRONTO', 'ENTREGUE', 'CANCELADO'], true)) {
+                $falhar('Status inválido.');
+            }
+            if ($novo === (string)$item['status']) {
+                json_resposta(true, 'O item já está com esse status.');
+                break;
+            }
+            if (!item_transicao_valida((string)$item['status'], $novo)) {
+                json_resposta(false,
+                    'Não é possível mudar de ' . $item['status'] . ' para ' . $novo . '.', null, 409);
+            }
+
+            $pdo->beginTransaction();
+            $stmt = $pdo->prepare(
+                "UPDATE comanda_itens SET status = ?, data_atualizacao = NOW()
+                  WHERE id = ? AND status = ?"
+            );
+            $stmt->execute([$novo, $itemId, $item['status']]);
+            if ($stmt->rowCount() !== 1) {
+                $pdo->rollBack();
+                $falhar('O status do item mudou. Atualize a tela e tente novamente.', 409);
+            }
+            comanda_recalcular((int)$comanda['id'], $pdo);
+            $pdo->commit();
+
+            registrar_log('consumo', 'Status do item alterado na comanda ' . $comanda['numero'], $itemId,
+                ['item_id' => $itemId, 'descricao' => $item['descricao'], 'status' => $item['status']],
+                ['status' => $novo]);
+            json_resposta(true, 'Item marcado como ' . $novo . '.');
+            break;
+
         /* ---------------- Desconto / acréscimo ---------------- */
         case 'desconto':
             exigir_permissao('comandas_desconto');
@@ -192,7 +234,7 @@ try {
                 $falhar('Você não pode fechar comandas de outros atendentes.');
             }
 
-            $pendentes = comanda_itens_pendentes($comandaId);
+            $pendentes = consumo_producao_ativa() ? comanda_itens_pendentes($comandaId) : [];
             if ($pendentes) {
                 $lista = [];
                 foreach (array_slice($pendentes, 0, 5) as $p) {

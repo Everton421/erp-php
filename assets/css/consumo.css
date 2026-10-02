@@ -401,17 +401,35 @@ body.kds-tela-cheia .kds-pedido {
     font-weight: 600;
 }
 
-/* ===================== SELETOR DE CARDÁPIO ===================== */
-.cardapio-picker {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: .5rem;
+/* ===================== SELETOR DE PRODUTOS ===================== */
+/* A rolagem fica no wrapper: com `max-height` por bloco, cada categoria
+   virava sua própria barra e o cartão crescia sem limite. */
+.produtos-scroll {
     max-height: 46vh;
     overflow-y: auto;
     padding-right: .2rem;
 }
 
-.cardapio-btn {
+.produtos-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: .5rem;
+}
+
+.produtos-busca {
+    margin-bottom: .6rem;
+}
+
+.produtos-busca-status {
+    margin-top: .3rem;
+}
+
+[data-produtos-picker].is-buscando .produtos-scroll {
+    opacity: .45;
+    pointer-events: none;
+}
+
+.produtos-btn {
     border: 1px solid var(--border);
     background: var(--card-bg);
     border-radius: 11px;
@@ -424,26 +442,32 @@ body.kds-tela-cheia .kds-pedido {
     gap: .15rem;
 }
 
-.cardapio-btn:hover {
+.produtos-btn:hover {
     border-color: var(--accent);
     box-shadow: 0 3px 10px rgba(79, 110, 247, .18);
     transform: translateY(-1px);
 }
 
-.cardapio-btn .n {
+.produtos-btn .n {
     font-size: .84rem;
     font-weight: 600;
     line-height: 1.2;
 }
 
-.cardapio-btn .p {
+.produtos-btn .p {
     font-size: .8rem;
     color: var(--accent);
     font-weight: 700;
     font-variant-numeric: tabular-nums;
 }
 
-.cardapio-btn .c {
+.produtos-btn .k {
+    font-size: .68rem;
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.produtos-btn .c {
     font-size: .66rem;
     text-transform: uppercase;
     letter-spacing: .4px;
@@ -518,7 +542,7 @@ body.kds-tela-cheia .kds-pedido {
     color: #ff4d6d;
 }
 
-/* ===================== CATEGORIAS DO CARDÁPIO ===================== */
+/* ===================== CATEGORIAS DOS PRODUTOS ===================== */
 .categoria-tag {
     display: inline-flex;
     align-items: center;
@@ -545,7 +569,7 @@ body.dark-mode .kds-pedido .tempo.atrasado {
     color: #ff8496;
 }
 
-body.dark-mode .cardapio-btn:hover {
+body.dark-mode .produtos-btn:hover {
     box-shadow: 0 3px 12px rgba(0, 0, 0, .5);
 }
 
@@ -566,9 +590,15 @@ body.dark-mode .cardapio-btn:hover {
 }
 
 @media (max-width: 575.98px) {
-    .cardapio-picker {
+    .produtos-picker {
         grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
     }
+
+    /* Pouca altura útil na vertical: libera um pouco mais para a lista. */
+    .produtos-scroll {
+        max-height: 58vh;
+    }
+
     .mesa-numero {
         font-size: 1.1rem;
     }

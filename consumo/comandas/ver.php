@@ -13,9 +13,14 @@ if (!$comanda) {
 $podeManipular = (string)$comanda['status'] === 'ABERTA' && comanda_pode_manipular($comanda);
 $itens = comanda_itens($id);
 $itensAtivos = array_values(array_filter($itens, fn($i) => (string)$i['status'] !== 'CANCELADO'));
-$pendentes = comanda_itens_pendentes($id);
-$prontos = array_values(array_filter($itens, fn($i) => (string)$i['status'] === 'PRONTO'));
-$emPreparo = array_values(array_filter($itens, fn($i) => (string)$i['status'] === 'PREPARANDO'));
+$producaoAtiva = consumo_producao_ativa();
+$pendentes = $producaoAtiva ? comanda_itens_pendentes($id) : [];
+$prontos = $producaoAtiva
+    ? array_values(array_filter($itens, fn($i) => (string)$i['status'] === 'PRONTO'))
+    : [];
+$emPreparo = $producaoAtiva
+    ? array_values(array_filter($itens, fn($i) => (string)$i['status'] === 'PREPARANDO'))
+    : [];
 
 $statusBorda = (string)$comanda['status'] === 'ABERTA' ? '' : ' opacity-75';
 
@@ -101,7 +106,7 @@ include INC . 'header.php';
                     <?php if (!$itens): ?>
                     <div class="text-center text-muted py-5">
                         <i class="bi bi-basket d-block fs-1 mb-2"></i>
-                        Nenhum item lançado. Escolha no cardápio ao lado.
+                        Nenhum item lançado. Escolha um produto ao lado.
                     </div>
                     <?php endif; ?>
 
@@ -127,33 +132,41 @@ include INC . 'header.php';
 
                         <?php if ($podeManipular): ?>
                         <div class="d-flex align-items-center gap-1 flex-shrink-0">
-                            <?php if ((string)$i['status'] === 'PENDENTE'): ?>
+                            <?php $editavel = item_editavel($i); ?>
+                            <?php if ($editavel): ?>
                             <button type="button" class="btn btn-soft btn-sm js-menos" title="Diminuir">
                                 <i class="bi bi-dash-lg"></i>
                             </button>
                             <input type="text" class="form-control form-control-sm text-center js-qtd"
                                    name="qtd" value="<?= formatar_numero((float)$i['quantidade'], 0) ?>"
+                                   data-atual="<?= formatar_numero((float)$i['quantidade'], 0) ?>"
                                    style="width:52px" data-mask="int" aria-label="Quantidade">
                             <button type="button" class="btn btn-soft btn-sm js-mais" title="Aumentar">
                                 <i class="bi bi-plus-lg"></i>
                             </button>
                             <?php endif; ?>
 
-                            <button type="button" class="btn btn-soft btn-sm js-obs-item js-confirmar"
+                            <?php $saidas = item_transicoes()[(string)$i['status']] ?? []; ?>
+                            <?php if ($saidas): ?>
+                            <select class="form-select form-select-sm js-status-item" data-item="<?= (int)$i['id'] ?>"
+                                    style="width:132px" aria-label="Status do item" title="Alterar status">
+                                <option value=""><?= e($i['status']) ?>…</option>
+                                <?php foreach ($saidas as $saida): ?>
+                                <option value="<?= e($saida) ?>"><?= e($saida) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <?php endif; ?>
+
+                            <button type="button" class="btn btn-soft btn-sm js-obs-item"
                                     data-item="<?= (int)$i['id'] ?>"
                                     data-obs="<?= e($i['observacoes']) ?>" title="Observação">
                                 <i class="bi bi-chat-left-text"></i>
                             </button>
 
-                            <?php if ((string)$i['status'] === 'PENDENTE'): ?>
-                            <button type="button" class="btn btn-soft-danger btn-sm js-remover-item js-confirmar"
+                            <?php if ($editavel): ?>
+                            <button type="button" class="btn btn-soft-danger btn-sm js-remover-item"
                                     data-item="<?= (int)$i['id'] ?>" title="Remover">
                                 <i class="bi bi-trash"></i>
-                            </button>
-                            <?php elseif ((string)$i['status'] !== 'CANCELADO' && (string)$i['status'] !== 'ENTREGUE'): ?>
-                            <button type="button" class="btn btn-soft-danger btn-sm js-cancelar-item js-confirmar"
-                                    data-item="<?= (int)$i['id'] ?>" title="Cancelar item">
-                                <i class="bi bi-x-circle"></i>
                             </button>
                             <?php endif; ?>
                         </div>
@@ -230,7 +243,7 @@ include INC . 'header.php';
         <?php if ($podeManipular && tem_permissao('comandas_item')): ?>
         <div class="card mb-3">
             <div class="card-header-custom">
-                <i class="bi bi-journal-text"></i>Cardápio
+                <i class="bi bi-journal-text"></i>Produtos
                 <span class="ms-auto small text-muted fw-normal">Clique para lançar</span>
             </div>
             <div class="card-body-custom">
@@ -238,12 +251,24 @@ include INC . 'header.php';
                     <?= csrf_field() ?>
                     <input type="hidden" name="acao" value="add_item">
                     <input type="hidden" name="comanda_id" value="<?= (int)$comanda['id'] ?>">
-                    <input type="hidden" name="item_id" value="">
+                    <input type="hidden" name="produto_id" value="">
                     <input type="hidden" name="qtd" value="1">
                 </form>
-                <div data-cardapio-picker>
+                <div class="produtos-busca">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="search" class="form-control js-busca-produto"
+                               placeholder="Buscar produto por nome ou código"
+                               autocomplete="off" aria-label="Buscar produto">
+                        <button type="button" class="btn btn-soft js-limpa-busca d-none" title="Limpar busca">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    <div class="produtos-busca-status small text-muted" data-busca-status hidden></div>
+                </div>
+                <div data-produtos-picker>
                     <div class="text-center text-muted small py-3">
-                        <span class="spinner-border spinner-border-sm me-2"></span>Carregando cardápio...
+                        <span class="spinner-border spinner-border-sm me-2"></span>Carregando produtos...
                     </div>
                 </div>
             </div>
@@ -253,6 +278,7 @@ include INC . 'header.php';
         <div class="card">
             <div class="card-header-custom"><i class="bi bi-clock-history"></i>Andamento</div>
             <div class="card-body-custom">
+                <?php if ($producaoAtiva): ?>
                 <div class="kds-barras mb-0">
                     <div class="kds-contador">
                         <i class="bi bi-hourglass-split text-warning fs-4"></i>
@@ -276,6 +302,12 @@ include INC . 'header.php';
                         </div>
                     </div>
                 </div>
+                <?php else: ?>
+                <div class="info-lote">
+                    <span class="rot"><?= e(rotulo_producao()) ?></span>
+                    <span class="val">Desativada</span>
+                </div>
+                <?php endif; ?>
 
                 <div class="info-lote mt-3">
                     <span class="rot">Abertura</span>
@@ -407,8 +439,7 @@ include INC . 'header.php';
             return $el.closest('[data-item-linha]').data('item-linha');
         }
 
-        function salvarQtd($linha) {
-            const $qtd = $linha.find('.js-qtd');
+        function salvarQtd($qtd) {
             let valor = APP.paraNumero($qtd.val());
             if (valor <= 0) {
                 valor = 1;
@@ -448,6 +479,20 @@ include INC . 'header.php';
             salvarQtd($(this));
         });
 
+        $('.js-status-item').on('change', function () {
+            const $sel = $(this);
+            const novo = $sel.val();
+            if (!novo) return;
+
+            CONSUMO.acao('comandas/acao.php', {
+                csrf_token: APP.csrf, acao: 'status', item_id: $sel.data('item'), status: novo
+            }, function () { recarregar(); },
+                function (res) {
+                    APP.toast('error', (res && res.msg) || 'Não foi possível alterar o status.');
+                    $sel.val('');
+                });
+        });
+
         $('.js-obs-item').on('click', function () {
             const $btn = $(this);
             Swal.fire({
@@ -481,18 +526,6 @@ include INC . 'header.php';
             });
         });
 
-        $('.js-cancelar-item').on('click', function () {
-            const $btn = $(this);
-            APP.swalConfirm('Cancelar item?',
-                'O item será cancelado e informado à <?= e(rotulo_producao()) ?>. O total será recalculado.',
-                'warning', 'Cancelar item').then(function (r) {
-                if (!r.isConfirmed) return;
-                CONSUMO.acao('comandas/acao.php', {
-                    csrf_token: APP.csrf, acao: 'cancelar_item', item_id: $btn.data('item')
-                }, function () { recarregar(); },
-                    function (res) { APP.toast('error', (res && res.msg) || 'Não foi possível cancelar.'); });
-            });
         });
-    });
 </script>
 <?php include INC . 'footer.php'; ?>

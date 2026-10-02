@@ -110,6 +110,7 @@ CREATE TABLE IF NOT EXISTS `comandas` (
 CREATE TABLE IF NOT EXISTS `comanda_itens` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `comanda_id` int(11) NOT NULL,
+  `produto_id` int(11) DEFAULT NULL,
   `cardapio_item_id` int(11) DEFAULT NULL,
   `descricao` varchar(150) NOT NULL,
   `quantidade` decimal(12,3) NOT NULL DEFAULT 1.000,
@@ -127,6 +128,7 @@ CREATE TABLE IF NOT EXISTS `comanda_itens` (
   PRIMARY KEY (`id`),
   KEY `ix_it_comanda` (`comanda_id`),
   KEY `ix_it_status` (`status`, `data_pedido`),
+  KEY `ix_it_produto` (`produto_id`),
   KEY `ix_it_cardapio` (`cardapio_item_id`),
   KEY `ix_it_data` (`data_pedido`),
   CONSTRAINT `fk_it_comanda` FOREIGN KEY (`comanda_id`) REFERENCES `comandas` (`id`) ON DELETE CASCADE,
@@ -248,5 +250,6 @@ ON DUPLICATE KEY UPDATE `permitido` = 1;
 
 INSERT INTO `configs` (`chave`, `valor`, `atualizada_em`) VALUES
 ('consumo_nome', 'Consumo', NOW()),
-('consumo_producao_nome', 'Produção', NOW())
+('consumo_producao_nome', 'Produção', NOW()),
+('consumo_producao_ativa', '1', NOW())
 ON DUPLICATE KEY UPDATE `chave` = `chave`;

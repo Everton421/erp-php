@@ -77,7 +77,8 @@ UPDATE `perfis` SET `descricao` = CONVERT('Recebimento de comandas e relatórios
 
 INSERT INTO `configs` (`chave`, `valor`, `atualizada_em`) VALUES
 ('consumo_nome', 'Consumo', NOW()),
-('consumo_producao_nome', 'Produção', NOW())
+('consumo_producao_nome', 'Produção', NOW()),
+('consumo_producao_ativa', '1', NOW())
 ON DUPLICATE KEY UPDATE `chave` = `chave`;
 
 -- ---------------------------------------------------------------------

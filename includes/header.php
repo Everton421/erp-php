@@ -24,10 +24,10 @@ $paginaConsumo = strpos((string)($_SERVER['SCRIPT_NAME'] ?? ''), '/consumo/') !=
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="<?= url(ASSETS . '/js/app.js') ?>"></script>
-    <link rel="stylesheet" href="<?= url(ASSETS . '/css/app.css') ?>">
+    <script src="<?= url_asset(ASSETS . '/js/app.js') ?>"></script>
+    <link rel="stylesheet" href="<?= url_asset(ASSETS . '/css/app.css') ?>">
 <?php if ($paginaConsumo): ?>
-<link rel="stylesheet" href="<?= url(ASSETS . '/css/consumo.css') ?>">
+<link rel="stylesheet" href="<?= url_asset(ASSETS . '/css/consumo.css') ?>">
 <?php endif; ?>
     <script>
         (function() {

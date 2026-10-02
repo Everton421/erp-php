@@ -3,74 +3,66 @@ require_once __DIR__ . '/../../config/config.php';
 exigir_login();
 exigir_permissao('cardapio_ver');
 
-$pdo = db();
-
-$categorias = cardapio_categorias(true);
-$statusFiltro = (string)($_GET['status'] ?? 'ativos');
-$catFiltro = (int)($_GET['categoria'] ?? 0);
 $busca = trim((string)($_GET['busca'] ?? ''));
+$catFiltro = (int)($_GET['categoria'] ?? 0);
 
-$sql = 'SELECT i.*, c.nome AS categoria_nome, c.cor AS categoria_cor
-          FROM cardapio_itens i
-          LEFT JOIN cardapio_categorias c ON c.id = i.categoria_id
-         WHERE 1=1';
-$params = [];
+$categorias = consumo_categorias();
+$produtos = consumo_produtos([
+    'categoria_id' => $catFiltro > 0 ? $catFiltro : '',
+    'busca' => $busca,
+]);
 
-if ($statusFiltro === 'ativos') {
-    $sql .= ' AND i.ativo = 1';
-} elseif ($statusFiltro === 'inativos') {
-    $sql .= ' AND i.ativo = 0';
+$qtdAtivos = count(consumo_produtos());
+$qtdTotal = (int)db()->query('SELECT COUNT(*) FROM produtos')->fetchColumn();
+$qtdInativos = $qtdTotal - $qtdAtivos;
+$valorMedio = 0.0;
+foreach ($produtos as $p) {
+    $valorMedio += (float)$p['preco'];
 }
-if ($catFiltro > 0) {
-    $sql .= ' AND i.categoria_id = ?';
-    $params[] = $catFiltro;
-}
-if ($busca !== '') {
-    $sql .= ' AND (i.descricao LIKE ? OR i.codigo LIKE ?)';
-    $params[] = '%' . $busca . '%';
-    $params[] = '%' . $busca . '%';
-}
-$sql .= ' ORDER BY c.ordem, c.nome, i.descricao';
+$valorMedio = count($produtos) > 0 ? $valorMedio / count($produtos) : 0.0;
 
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
-$itens = $stmt->fetchAll();
-
-$qtdAtivos = (int)$pdo->query('SELECT COUNT(*) FROM cardapio_itens WHERE ativo = 1')->fetchColumn();
-$qtdInativos = (int)$pdo->query('SELECT COUNT(*) FROM cardapio_itens WHERE ativo = 0')->fetchColumn();
-$valorMedio = (float)$pdo->query('SELECT COALESCE(AVG(preco), 0) FROM cardapio_itens WHERE ativo = 1')->fetchColumn();
-
-$tituloPagina = 'Cardápio';
+$tituloPagina = 'Produtos';
 include INC . 'header.php';
 ?>
 <div class="page-header">
     <div>
-        <h1><i class="bi bi-journal-text me-2"></i>Cardápio</h1>
+        <h1><i class="bi bi-box-seam me-2"></i>Produtos</h1>
         <span class="subtitulo">
-            <?= count($itens) ?> item(ns) na listagem &middot;
+            Catálogo do <?= e(rotulo_consumo()) ?> &middot;
+            <?= count($produtos) ?> produto(s) na listagem &middot;
             <?= $qtdAtivos ?> ativo(s) &middot;
             <?= $qtdInativos ?> inativo(s) &middot;
-            ticket médio <?= formatar_moeda($valorMedio) ?>
+            preço médio <?= formatar_moeda($valorMedio) ?>
         </span>
     </div>
     <div class="d-flex gap-2">
-        <a href="<?= url('consumo/cardapio/categorias.php') ?>" class="btn btn-soft">
-            <i class="bi bi-tags me-1"></i>Categorias
-        </a>
-        <?php if (tem_permissao('cardapio_editar')): ?>
-        <a href="<?= url('consumo/cardapio/form.php') ?>" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-1"></i>Novo item
+        <?php if (tem_permissao('produtos_ver')): ?>
+        <a href="<?= url('produtos/index.php') ?>" class="btn btn-soft">
+            <i class="bi bi-box-seam me-1"></i>Módulo Produtos
         </a>
         <?php endif; ?>
+        <?php if (tem_permissao('produtos_criar')): ?>
+        <a href="<?= url('produtos/form.php') ?>" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Novo produto
+        </a>
+        <?php endif; ?>
+    </div>
+</div>
+
+<div class="alert alert-info d-flex align-items-start gap-2">
+    <i class="bi bi-info-circle mt-1"></i>
+    <div>
+        O <?= e(rotulo_consumo()) ?> usa os produtos cadastrados em <strong>Produtos</strong>.
+        O preço praticado vem do <em>preço promocional</em> quando preenchido, senão do <em>preço de venda</em>.
+        Esta tela é somente leitura — use o módulo <strong>Produtos</strong> para incluir, alterar ou excluir.
     </div>
 </div>
 
 <div class="card mb-3">
     <div class="card-body">
         <form method="get" class="row g-2 align-items-end">
-            <input type="hidden" name="status" value="<?= e($statusFiltro) ?>">
             <div class="col-12 col-md-5">
-                <label class="form-label" for="busca">Buscar item</label>
+                <label class="form-label" for="busca">Buscar produto</label>
                 <input type="text" class="form-control" id="busca" name="busca" value="<?= e($busca) ?>"
                        placeholder="Descrição ou código" maxlength="60">
             </div>
@@ -90,14 +82,6 @@ include INC . 'header.php';
                 <a href="<?= url('consumo/cardapio/index.php') ?>" class="btn btn-light">Limpar</a>
             </div>
         </form>
-        <div class="btn-group btn-group-sm mt-3">
-            <a href="<?= url('consumo/cardapio/index.php?status=ativos') ?>"
-               class="btn <?= $statusFiltro === 'ativos' ? 'btn-primary' : 'btn-light' ?>">Ativos</a>
-            <a href="<?= url('consumo/cardapio/index.php?status=inativos') ?>"
-               class="btn <?= $statusFiltro === 'inativos' ? 'btn-primary' : 'btn-light' ?>">Inativos</a>
-            <a href="<?= url('consumo/cardapio/index.php?status=todos') ?>"
-               class="btn <?= $statusFiltro === 'todos' ? 'btn-primary' : 'btn-light' ?>">Todos</a>
-        </div>
     </div>
 </div>
 
@@ -111,87 +95,43 @@ include INC . 'header.php';
                         <th>Código</th>
                         <th>Descrição</th>
                         <th>Categoria</th>
-                        <th class="text-end">Preço</th>
-                        <th class="text-center">Preparo</th>
-                        <th>Observações</th>
+                        <th class="text-end">Preço de venda</th>
+                        <th class="text-end">Preço no consumo</th>
                         <th>Status</th>
                         <th class="no-print">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if (!$itens): ?>
-                    <tr>
-                        <td colspan="9" class="text-center text-muted py-4">
-                            <i class="bi bi-inbox d-block fs-3 mb-2"></i>
-                            Nenhum item encontrado com os filtros aplicados.
-                        </td>
-                    </tr>
-                    <?php endif; ?>
-                    <?php foreach ($itens as $i): ?>
+                    <?php foreach ($produtos as $p): ?>
                     <tr>
                         <td>
-                            <?php if ($i['foto'] && file_exists(BASE_PATH . '/' . $i['foto'])): ?>
-                            <img src="<?= url($i['foto']) ?>" width="38" height="38" class="rounded object-fit-cover" alt="">
+                            <?php if ($p['foto'] && file_exists(BASE_PATH . '/' . $p['foto'])): ?>
+                            <img src="<?= url($p['foto']) ?>" width="38" height="38" class="rounded object-fit-cover" alt="">
                             <?php else: ?>
                             <span class="d-inline-grid" style="width:38px;height:38px;place-items:center;background:#eef1fb;border-radius:8px;color:#8ea0d4">
                                 <i class="bi bi-cup-hot"></i>
                             </span>
                             <?php endif; ?>
                         </td>
-                        <td class="fw-semibold"><?= e($i['codigo'] ?: '-') ?></td>
+                        <td class="fw-semibold"><?= e($p['codigo'] ?: '-') ?></td>
                         <td>
-                            <div class="fw-semibold"><?= e($i['descricao']) ?></div>
-                            <?php if ($i['descricao_complementar']): ?>
-                            <small class="text-muted"><?= e($i['descricao_complementar']) ?></small>
+                            <div class="fw-semibold"><?= e($p['descricao']) ?></div>
+                            <?php if ($p['descricao_complementar']): ?>
+                            <small class="text-muted"><?= e($p['descricao_complementar']) ?></small>
                             <?php endif; ?>
                         </td>
+                        <td><?= e($p['categoria_nome'] ?: '-') ?></td>
+                        <td class="text-end" data-moeda-exibir><?= (float)$p['preco_venda'] ?></td>
+                        <td class="text-end fw-semibold" data-moeda-exibir><?= (float)$p['preco'] ?></td>
                         <td>
-                            <?php if ($i['categoria_nome']): ?>
-                            <span class="categoria-tag" style="background:<?= e($i['categoria_cor'] ?: '#4f6ef7') ?>">
-                                <?= e($i['categoria_nome']) ?>
-                            </span>
-                            <?php else: ?>
-                            <span class="text-muted">-</span>
-                            <?php endif; ?>
-                        </td>
-                        <td class="text-end fw-semibold" data-moeda-exibir><?= (float)$i['preco'] ?></td>
-                        <td class="text-center">
-                            <?= $i['tempo_preparo'] ? (int)$i['tempo_preparo'] . ' min' : '-' ?>
-                        </td>
-                        <td class="small text-muted"><?= e($i['observacoes'] ?: '-') ?></td>
-                        <td>
-                            <?= (int)$i['ativo'] === 1
-                                ? '<span class="badge bg-success">Ativo</span>'
-                                : '<span class="badge bg-secondary">Inativo</span>' ?>
+                            <span class="badge bg-success">Ativo</span>
                         </td>
                         <td class="text-nowrap no-print">
-                            <?php if (tem_permissao('cardapio_editar')): ?>
-                            <a href="<?= url('consumo/cardapio/form.php?id=' . (int)$i['id']) ?>"
-                               class="acao-btn btn-soft" data-bs-toggle="tooltip" title="Editar">
+                            <?php if (tem_permissao('produtos_editar')): ?>
+                            <a href="<?= url('produtos/form.php?id=' . (int)$p['id']) ?>"
+                               class="acao-btn btn-soft" data-bs-toggle="tooltip" title="Editar no módulo Produtos">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <?php endif; ?>
-                            <?php if (tem_permissao('cardapio_editar')): ?>
-                            <form action="<?= url('consumo/cardapio/salvar.php') ?>" method="post" class="d-inline">
-                                <?= csrf_field() ?>
-                                <input type="hidden" name="acao" value="alternar_item">
-                                <input type="hidden" name="id" value="<?= (int)$i['id'] ?>">
-                                <button type="submit" class="acao-btn btn-soft" data-bs-toggle="tooltip"
-                                        title="<?= (int)$i['ativo'] === 1 ? 'Desativar' : 'Ativar' ?>">
-                                    <i class="bi bi-<?= (int)$i['ativo'] === 1 ? 'toggle-on' : 'toggle-off' ?>"></i>
-                                </button>
-                            </form>
-                            <?php endif; ?>
-                            <?php if (tem_permissao('cardapio_editar')): ?>
-                            <form action="<?= url('consumo/cardapio/salvar.php') ?>" method="post" class="d-inline">
-                                <?= csrf_field() ?>
-                                <input type="hidden" name="acao" value="excluir_item">
-                                <input type="hidden" name="id" value="<?= (int)$i['id'] ?>">
-                                <button type="submit" class="acao-btn btn-soft-danger excluir-item" data-bs-toggle="tooltip"
-                                        title="Excluir">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
                             <?php endif; ?>
                         </td>
                     </tr>
@@ -202,5 +142,4 @@ include INC . 'header.php';
     </div>
 </div>
 
-<script>APP.confirmarExcluir('.excluir-item', 'Deseja excluir este item do cardápio? Itens já lançados em comandas serão preservados.');</script>
 <?php include INC . 'footer.php'; ?>

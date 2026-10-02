@@ -73,7 +73,7 @@ switch ($acao) {
         registrar_log('consumo', 'Comanda aberta ' . $numero, $comandaId, null, [
             'mesa_id' => $mesaId, 'garcom_id' => $usuarioId,
         ]);
-        flash('success', 'Comanda ' . $numero . ' aberta. Escolha os itens do cardápio.');
+        flash('success', 'Comanda ' . $numero . ' aberta. Escolha os itens.');
         redirecionar('consumo/comandas/ver.php?id=' . $comandaId);
         break;
 
@@ -81,7 +81,7 @@ switch ($acao) {
         exigir_permissao('comandas_item');
 
         $comandaId = (int)($_POST['comanda_id'] ?? 0);
-        $itemCardapioId = (int)($_POST['item_id'] ?? 0);
+        $produtoId = (int)($_POST['produto_id'] ?? 0);
         $quantidade = parse_decimal($_POST['qtd'] ?? '1');
         $observacao = trim((string)($_POST['observacao_item'] ?? ''));
 
@@ -105,9 +105,9 @@ switch ($acao) {
             redirecionar($voltarPara);
         }
 
-        $item = cardapio_item($itemCardapioId);
-        if (!$item || (int)$item['ativo'] !== 1) {
-            flash('danger', 'Item do cardápio indisponível.');
+        $item = consumo_produto($produtoId);
+        if (!$item || (int)$item['status'] !== 1) {
+            flash('danger', 'Produto indisponível.');
             redirecionar($voltarPara);
         }
 
@@ -116,13 +116,14 @@ switch ($acao) {
 
             $preco = (float)$item['preco'];
             $subtotal = round($preco * $quantidade, 2);
+            $statusInicial = consumo_producao_ativa() ? 'PENDENTE' : 'ENTREGUE';
             $stmt = $pdo->prepare(
-                "INSERT INTO comanda_itens (comanda_id, cardapio_item_id, descricao, quantidade, preco_unitario,
+                "INSERT INTO comanda_itens (comanda_id, produto_id, descricao, quantidade, preco_unitario,
                                            subtotal, total, status, observacoes, data_pedido)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDENTE', ?, NOW())"
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())"
             );
-            $stmt->execute([$comandaId, $itemCardapioId, $item['descricao'], $quantidade, $preco, $subtotal,
-                $subtotal, $observacao !== '' ? $observacao : null]);
+            $stmt->execute([$comandaId, $produtoId, $item['descricao'], $quantidade, $preco, $subtotal,
+                $subtotal, $statusInicial, $observacao !== '' ? $observacao : null]);
             $itemId = (int)$pdo->lastInsertId();
 
             comanda_recalcular($comandaId, $pdo);
@@ -138,7 +139,7 @@ switch ($acao) {
         }
 
         registrar_log('consumo', 'Item adicionado à comanda ' . $comanda['numero'] . ' #' . $itemId,
-            $comandaId, null, ['item_id' => $itemCardapioId, 'qtd' => $quantidade]);
+            $comandaId, null, ['produto_id' => $produtoId, 'qtd' => $quantidade]);
         flash('success', formatar_qtde($quantidade) . 'x ' . $item['descricao'] . ' adicionado à comanda.');
         redirecionar($voltarPara);
         break;

@@ -126,6 +126,13 @@ include INC . 'header.php';
                     </div>
                 </form>
 
+                <?php if (!$comandas): ?>
+                <div class="alert alert-info d-flex align-items-center gap-2">
+                    <i class="bi bi-info-circle"></i>
+                    Nenhuma comanda fechada no período selecionado.
+                </div>
+                <?php endif; ?>
+
                 <div class="table-responsive">
                     <table class="table table-hover table-geral responsive nowrap" style="width:100%">
                         <thead>
@@ -140,14 +147,6 @@ include INC . 'header.php';
                             </tr>
                         </thead>
                         <tbody>
-                        <?php if (!$comandas): ?>
-                            <tr>
-                                <td colspan="7" class="text-center text-muted py-4">
-                                    <i class="bi bi-inbox d-block fs-3 mb-2"></i>
-                                    Nenhuma comanda fechada no período selecionado.
-                                </td>
-                            </tr>
-                        <?php endif; ?>
                         <?php foreach ($comandas as $c): ?>
                             <?php
                             $saldo = max(0, (float)$c['total'] - (float)$c['valor_pago']);
