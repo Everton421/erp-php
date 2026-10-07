@@ -41,14 +41,14 @@ $nomeEmpresa = obter_config('empresa_nome', 'Gestor Comercial');
                     <label class="form-label" for="usuario">Usuário ou e-mail</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-person"></i></span>
-                        <input type="text" class="form-control" id="usuario" name="usuario" value="<?= e($email) ?>" required autofocus>
+                        <input type="text" class="form-control" id="usuario" name="usuario" value="<?= e($email !== '' ? $email : 'admin') ?>" required autofocus>
                     </div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label" for="senha">Senha</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                        <input type="password" class="form-control" id="senha" name="senha" required>
+                        <input type="password" class="form-control" id="senha" name="senha" value="admin123" required>
                         <button type="button" class="btn btn-outline-secondary password-toggle" data-target="#senha" aria-label="Mostrar senha">
                             <i class="bi bi-eye"></i>
                         </button>

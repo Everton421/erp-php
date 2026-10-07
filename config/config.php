@@ -11,10 +11,10 @@ define('APP_NAME', 'Gestor Comercial');
 
 define('BASE_PATH', dirname(__DIR__));
 
-define('DB_HOST', '192.168.100.106');
+define('DB_HOST', 'localhost');
 define('DB_NAME', 'edbbuzjw_alessandro');
 define('DB_USER', 'root');
-define('DB_PASS', 'Nileduz');
+define('DB_PASS', '123');
 define('DB_CHARSET', 'utf8mb4');
 
 define('INC', BASE_PATH . '/includes/');
